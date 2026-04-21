@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGTM — Preview Quiz Interactifs</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  h1 { color: #38bdf8; font-size: 2em; margin-bottom: 10px; border-bottom: 2px solid #1e3a5f; padding-bottom: 10px; }
+  h2 { color: #22d3ee; font-size: 1.5em; margin: 30px 0 15px; }
+  h3 { color: #a78bfa; font-size: 1.2em; margin: 20px 0 10px; }
+  .stats-bar { display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
+  .stat-card { background: #1e293b; border-radius: 12px; padding: 15px 20px; min-width: 120px; text-align: center; border: 1px solid #334155; }
+  .stat-card .number { font-size: 2em; font-weight: bold; color: #22d3ee; }
+  .stat-card .label { font-size: 0.85em; color: #94a3b8; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 600; margin-right: 5px; }
+  .badge-a1 { background: #166534; color: #86efac; }
+  .badge-a2 { background: #3f6212; color: #bef264; }
+  .badge-b1 { background: #92400e; color: #fcd34d; }
+  .badge-b2 { background: #9a3412; color: #fdba74; }
+  .badge-c1 { background: #581c87; color: #d8b4fe; }
+  .badge-c2 { background: #831843; color: #f9a8d4; }
+  .module-card { background: #1e293b; border-radius: 12px; padding: 20px; margin: 15px 0; border-left: 4px solid #3b82f6; }
+  .module-card.new { border-left-color: #22c55e; }
+  .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .module-title { font-size: 1.1em; font-weight: 600; color: #f1f5f9; }
+  .objectives { margin: 10px 0; padding-left: 20px; }
+  .objectives li { color: #94a3b8; margin: 5px 0; }
+  .question-block { background: #0f172a; border-radius: 8px; padding: 15px; margin: 10px 0; border: 1px solid #334155; }
+  .question-text { font-weight: 600; color: #f8fafc; margin-bottom: 10px; }
+  .options { list-style: none; padding: 0; }
+  .options li { padding: 8px 12px; margin: 4px 0; border-radius: 6px; background: #1e293b; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+  .options li:hover { background: #334155; }
+  .options li.correct { background: #166534; border-color: #22c55e; color: #86efac; }
+  .options li.wrong { background: #7f1d1d; border-color: #ef4444; color: #fca5a5; }
+  .explanation { display: none; margin-top: 8px; padding: 10px; background: #1a2744; border-radius: 6px; color: #93c5fd; font-size: 0.9em; border-left: 3px solid #3b82f6; }
+  .explanation.show { display: block; }
+  .section-tabs { display: flex; gap: 5px; margin: 20px 0; flex-wrap: wrap; }
+  .tab-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #94a3b8; cursor: pointer; font-size: 0.9em; }
+  .tab-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; }
+  .tag-existing { background: #1e40af; color: #93c5fd; }
+  .tag-new { background: #166534; color: #86efac; }
+  .duration { color: #64748b; font-size: 0.85em; }
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+  th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid #334155; }
+  th { background: #1e293b; color: #94a3b8; font-size: 0.85em; text-transform: uppercase; }
+  tr:hover { background: #1e293b; }
+  .nav { background: #1e293b; padding: 15px 20px; margin-bottom: 30px; border-radius: 12px; display: flex; gap: 15px; flex-wrap: wrap; }
+  .nav a { color: #38bdf8; text-decoration: none; padding: 5px 10px; border-radius: 6px; }
+  .nav a:hover { background: #334155; }
+  .nav a.active { background: #3b82f6; color: white; }
+  @media (max-width: 768px) { .stats-bar { flex-direction: column; } .module-header { flex-direction: column; gap: 5px; } }
+</style>
+
+<script>
+function checkAnswer(btn, isCorrect, explanationId) {
+  const parent = btn.parentElement;
+  const allOptions = parent.querySelectorAll('li');
+  allOptions.forEach(li => {
+    li.style.pointerEvents = 'none';
+    if (li.dataset.correct === 'true') li.classList.add('correct');
+    else if (li === btn && !isCorrect) li.classList.add('wrong');
+  });
+  document.getElementById(explanationId).classList.add('show');
+}
+function showTab(tabGroup, tabId) {
+  document.querySelectorAll('.' + tabGroup + '-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.' + tabGroup + '-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelector('[onclick*="' + tabId + '"]').classList.add('active');
+}
+</script>
+</head>
+<body>
+<div class="container">
+<h1>📝 AGTM — Quiz Interactifs (Preview)</h1>
+<p style="color:#94a3b8;">Cliquez sur une réponse pour vérifier. L'explication s'affiche automatiquement.</p>
+
+<div class="nav">
+  <a href="catalogue.html">📚 Catalogue</a>
+  <a href="quiz_preview.html" class="active">📝 Quiz</a>
+  <a href="placement_preview.html">🎯 Test Placement</a>
+</div>
+
+<h2><span class="badge badge-b2">B2</span> BAC Dissertation – Méthodologie Complète</h2>
+<p style="color:#64748b;">Code: BAC-B2-004 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. L'introduction d'une dissertation doit contenir :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_1')">A) Uniquement la thèse</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_1')">B) Hook + contexte + problématique + plan</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_1')">C) Des exemples</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_1')">D) La conclusion</li>
+  </ul>
+  <div class="explanation" id="exp_1">💡 Introduction complète = hook, contexte, problématique, plan.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. Un 'hook' en dissertation, c'est :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_2')">A) La conclusion</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_2')">B) Une phrase d'accroche</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_2')">C) Un argument</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_2')">D) Un contre-argument</li>
+  </ul>
+  <div class="explanation" id="exp_2">💡 Hook = accroche pour capter l'attention.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. Combien de parties minimum dans le développement ?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_3')">A) 1</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_3')">B) 2</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_3')">C) 3</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_3')">D) 5</li>
+  </ul>
+  <div class="explanation" id="exp_3">💡 Minimum 2 parties (pour/contre ou thèse/antithèse).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. 'In conclusion' sert à :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_4')">A) Commencer</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_4')">B) Développer</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_4')">C) Illustrer</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_4')">D) Conclure</li>
+  </ul>
+  <div class="explanation" id="exp_4">💡 In conclusion = pour conclure.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. Un bon argument contient :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_5')">A) Juste une opinion</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_5')">B) Une idée + un exemple + une explication</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_5')">C) Un seul mot</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_5')">D) Une question</li>
+  </ul>
+  <div class="explanation" id="exp_5">💡 Argument = idée + preuve + explication (méthode PEE/PEEL).</div>
+</div>
+
+<h2><span class="badge badge-a2">A2</span> BEPC Grammaire – Temps de Base</h2>
+<p style="color:#64748b;">Code: BEPC-A2-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. She _____ to school every day. (BEPC)</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_6')">A) go</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_6')">B) goes</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_6')">C) going</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_6')">D) gone</li>
+  </ul>
+  <div class="explanation" id="exp_6">💡 Habitude → présent simple → goes.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. They _____ football now.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_7')">A) play</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_7')">B) plays</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_7')">C) are playing</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_7')">D) played</li>
+  </ul>
+  <div class="explanation" id="exp_7">💡 Now = en ce moment → présent continu.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. He _____ his homework yesterday.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_8')">A) do</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_8')">B) does</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_8')">C) did</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_8')">D) doing</li>
+  </ul>
+  <div class="explanation" id="exp_8">💡 Yesterday → passé simple → did.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. We _____ English at school.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_9')">A) study</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_9')">B) studies</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_9')">C) studying</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_9')">D) studied</li>
+  </ul>
+  <div class="explanation" id="exp_9">💡 We → présent simple → study.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. Look! The baby _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_10')">A) cry</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_10')">B) cries</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_10')">C) is crying</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_10')">D) cried</li>
+  </ul>
+  <div class="explanation" id="exp_10">💡 Look! → action en cours → is crying.</div>
+</div>
+
+<h2><span class="badge badge-a2">A2</span> Se Présenter en Contexte Professionnel</h2>
+<p style="color:#64748b;">Code: BUS-A2-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. 'I'm in charge of marketing.' → 'In charge of' means:</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_11')">A) Interested in</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_11')">B) Responsible for</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_11')">C) Against</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_11')">D) Studying</li>
+  </ul>
+  <div class="explanation" id="exp_11">💡 In charge of = responsable de.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. Nice to _____ you.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_12')">A) see</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_12')">B) meet</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_12')">C) know</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_12')">D) watch</li>
+  </ul>
+  <div class="explanation" id="exp_12">💡 Première rencontre → meet.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. What do you _____? (profession)</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_13')">A) make</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_13')">B) do</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_13')">C) work</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_13')">D) job</li>
+  </ul>
+  <div class="explanation" id="exp_13">💡 What do you do? = profession.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. I _____ for MTN as a project manager.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_14')">A) job</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_14')">B) work</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_14')">C) employ</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_14')">D) career</li>
+  </ul>
+  <div class="explanation" id="exp_14">💡 I work for + entreprise.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. How do you _____ your name?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_15')">A) write</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_15')">B) spell</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_15')">C) say</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_15')">D) tell</li>
+  </ul>
+  <div class="explanation" id="exp_15">💡 Spell = épeler.</div>
+</div>
+
+<h2><span class="badge badge-b1">B1</span> Les Présentations Orales en Anglais</h2>
+<p style="color:#64748b;">Code: BUS-B1-003 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. Pour commencer une présentation : 'Good morning. _____ I'd like to talk about...'</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_16')">A) Finally</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_16')">B) Today</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_16')">C) However</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_16')">D) Although</li>
+  </ul>
+  <div class="explanation" id="exp_16">💡 Today = aujourd'hui (ouverture classique).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. 'Let me now _____ to the second point.'</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_17')">A) move on</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_17')">B) go back</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_17')">C) give up</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_17')">D) take off</li>
+  </ul>
+  <div class="explanation" id="exp_17">💡 Move on to = passer à.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. Pour conclure : 'To _____, let me highlight three key points.'</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_18')">A) begin</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_18')">B) summarize</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_18')">C) forget</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_18')">D) ignore</li>
+  </ul>
+  <div class="explanation" id="exp_18">💡 To summarize = pour résumer.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. 'Are there any _____?'</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_19')">A) answers</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_19')">B) problems</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_19')">C) questions</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_19')">D) solutions</li>
+  </ul>
+  <div class="explanation" id="exp_19">💡 Questions de l'audience.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. 'As you can _____ on this slide...'</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_20')">A) hear</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_20')">B) see</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_20')">C) feel</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_20')">D) taste</li>
+  </ul>
+  <div class="explanation" id="exp_20">💡 See = voir (sur un slide).</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Le Verbe TO BE – Présent</h2>
+<p style="color:#64748b;">Code: GRAM-A1-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. She _____ a doctor.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_21')">A) am</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_21')">B) is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_21')">C) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_21')">D) be</li>
+  </ul>
+  <div class="explanation" id="exp_21">💡 She → 3e personne singulier → is.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. We _____ from Côte d'Ivoire.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_22')">A) am</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_22')">B) is</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_22')">C) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_22')">D) was</li>
+  </ul>
+  <div class="explanation" id="exp_22">💡 We → pluriel → are.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. _____ he your brother?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_23')">A) Am</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_23')">B) Is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_23')">C) Are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_23')">D) Do</li>
+  </ul>
+  <div class="explanation" id="exp_23">💡 He → Is he...?</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. I _____ not tired today.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_24')">A) am</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_24')">B) is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_24')">C) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_24')">D) do</li>
+  </ul>
+  <div class="explanation" id="exp_24">💡 I → am not.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. They _____ happy about the results.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_25')">A) is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_25')">B) am</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_25')">C) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_25')">D) has</li>
+  </ul>
+  <div class="explanation" id="exp_25">💡 They → are.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Le Présent Simple – Actions et habitudes</h2>
+<p style="color:#64748b;">Code: GRAM-A1-002 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. He _____ to work every day.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_26')">A) go</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_26')">B) goes</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_26')">C) going</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_26')">D) gone</li>
+  </ul>
+  <div class="explanation" id="exp_26">💡 He → 3e pers. sing. → goes.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. They _____ football on Sundays.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_27')">A) plays</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_27')">B) play</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_27')">C) playing</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_27')">D) played</li>
+  </ul>
+  <div class="explanation" id="exp_27">💡 They → pas de -s.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. She _____ not like spicy food.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_28')">A) do</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_28')">B) does</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_28')">C) is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_28')">D) has</li>
+  </ul>
+  <div class="explanation" id="exp_28">💡 She does not / doesn't like.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. _____ you speak French?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_29')">A) Does</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_29')">B) Do</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_29')">C) Are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_29')">D) Is</li>
+  </ul>
+  <div class="explanation" id="exp_29">💡 You → Do you...?</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. My father _____ coffee in the morning.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_30')">A) drink</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_30')">B) drinks</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_30')">C) drinking</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_30')">D) drank</li>
+  </ul>
+  <div class="explanation" id="exp_30">💡 My father = he → drinks.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Les Articles – A, AN, THE</h2>
+<p style="color:#64748b;">Code: GRAM-A1-003 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. She is _____ engineer.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_31')">A) a</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_31')">B) an</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_31')">C) the</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_31')">D) --</li>
+  </ul>
+  <div class="explanation" id="exp_31">💡 Engineer commence par une voyelle → an.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. I need _____ book from the library.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_32')">A) a</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_32')">B) an</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_32')">C) the</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_32')">D) --</li>
+  </ul>
+  <div class="explanation" id="exp_32">💡 Un livre quelconque → a.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. _____ sun is very hot today.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_33')">A) A</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_33')">B) An</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_33')">C) The</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_33')">D) --</li>
+  </ul>
+  <div class="explanation" id="exp_33">💡 Le soleil = unique → the.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. She has _____ umbrella.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_34')">A) a</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_34')">B) an</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_34')">C) the</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_34')">D) --</li>
+  </ul>
+  <div class="explanation" id="exp_34">💡 Umbrella commence par /ʌ/ → an.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. _____ love is important.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_35')">A) A</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_35')">B) An</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_35')">C) The</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_35')">D) --</li>
+  </ul>
+  <div class="explanation" id="exp_35">💡 Concept abstrait général → pas d'article.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Les Pronoms Personnels et Possessifs</h2>
+<p style="color:#64748b;">Code: GRAM-A1-004 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. _____ is my friend.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_36')">A) He</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_36')">B) Him</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_36')">C) His</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_36')">D) Her</li>
+  </ul>
+  <div class="explanation" id="exp_36">💡 Sujet → He.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. This is _____ book.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_37')">A) I</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_37')">B) me</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_37')">C) my</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_37')">D) mine</li>
+  </ul>
+  <div class="explanation" id="exp_37">💡 Avant un nom → adjectif possessif → my.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. I gave _____ the keys.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_38')">A) she</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_38')">B) her</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_38')">C) hers</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_38')">D) his</li>
+  </ul>
+  <div class="explanation" id="exp_38">💡 Complément d'objet → her.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. _____ car is new.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_39')">A) They</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_39')">B) Them</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_39')">C) Their</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_39')">D) Theirs</li>
+  </ul>
+  <div class="explanation" id="exp_39">💡 Avant un nom → Their.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. The book is _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_40')">A) my</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_40')">B) me</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_40')">C) I</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_40')">D) mine</li>
+  </ul>
+  <div class="explanation" id="exp_40">💡 Sans nom après → pronom possessif → mine.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Les Prépositions de Lieu et de Temps</h2>
+<p style="color:#64748b;">Code: GRAM-A1-005 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. The meeting is _____ Monday.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_41')">A) in</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_41')">B) on</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_41')">C) at</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_41')">D) to</li>
+  </ul>
+  <div class="explanation" id="exp_41">💡 Jour → on Monday.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. She lives _____ Abidjan.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_42')">A) at</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_42')">B) on</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_42')">C) in</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_42')">D) to</li>
+  </ul>
+  <div class="explanation" id="exp_42">💡 Ville → in Abidjan.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. The class starts _____ 9 a.m.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_43')">A) in</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_43')">B) on</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_43')">C) at</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_43')">D) by</li>
+  </ul>
+  <div class="explanation" id="exp_43">💡 Heure précise → at 9 a.m.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. The cat is _____ the table.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_44')">A) under</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_44')">B) in</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_44')">C) at</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_44')">D) on</li>
+  </ul>
+  <div class="explanation" id="exp_44">💡 Sous → under the table.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. We go on holiday _____ August.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_45')">A) at</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_45')">B) on</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_45')">C) in</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_45')">D) to</li>
+  </ul>
+  <div class="explanation" id="exp_45">💡 Mois → in August.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> There is / There are</h2>
+<p style="color:#64748b;">Code: GRAM-A1-006 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. There _____ a book on the desk.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_46')">A) is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_46')">B) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_46')">C) be</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_46')">D) have</li>
+  </ul>
+  <div class="explanation" id="exp_46">💡 Singulier → there is.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. There _____ many students in the class.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_47')">A) is</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_47')">B) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_47')">C) be</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_47')">D) has</li>
+  </ul>
+  <div class="explanation" id="exp_47">💡 Pluriel → there are.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. _____ there a pharmacy near here?</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_48')">A) Is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_48')">B) Are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_48')">C) Do</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_48')">D) Does</li>
+  </ul>
+  <div class="explanation" id="exp_48">💡 Singulier → Is there...?</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. There _____ no milk in the fridge.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_49')">A) is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_49')">B) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_49')">C) be</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_49')">D) have</li>
+  </ul>
+  <div class="explanation" id="exp_49">💡 Indénombrable → there is no.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. There _____ three banks in my street.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_50')">A) is</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_50')">B) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_50')">C) be</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_50')">D) has</li>
+  </ul>
+  <div class="explanation" id="exp_50">💡 Trois = pluriel → there are.</div>
+</div>
+
+<h2><span class="badge badge-a2">A2</span> Le Futur – Will et Going to</h2>
+<p style="color:#64748b;">Code: GRAM-A2-004 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. Look at those clouds! It _____ rain.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_51')">A) will</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_51')">B) is going to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_51')">C) shall</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_51')">D) would</li>
+  </ul>
+  <div class="explanation" id="exp_51">💡 Prédiction basée sur une preuve → going to.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. I _____ help you with your bags.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_52')">A) am going to</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_52')">B) will</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_52')">C) shall</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_52')">D) would</li>
+  </ul>
+  <div class="explanation" id="exp_52">💡 Décision spontanée → will.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. We _____ visit our grandmother next Sunday.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_53')">A) will</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_53')">B) are going to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_53')">C) shall</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_53')">D) would</li>
+  </ul>
+  <div class="explanation" id="exp_53">💡 Plan prévu → going to.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. I think she _____ pass the exam.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_54')">A) is going to</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_54')">B) will</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_54')">C) shall</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_54')">D) would</li>
+  </ul>
+  <div class="explanation" id="exp_54">💡 Prédiction/opinion → will.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. They _____ buy a new house. They've saved enough.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_55')">A) will</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_55')">B) are going to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_55')">C) shall</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_55')">D) would</li>
+  </ul>
+  <div class="explanation" id="exp_55">💡 Intention décidée → going to.</div>
+</div>
+
+<h2><span class="badge badge-a2">A2</span> Les Comparatifs et Superlatifs</h2>
+<p style="color:#64748b;">Code: GRAM-A2-005 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. Paris is _____ than Lyon.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_56')">A) big</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_56')">B) bigger</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_56')">C) biggest</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_56')">D) more big</li>
+  </ul>
+  <div class="explanation" id="exp_56">💡 1 syllabe → bigger.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. This is the _____ restaurant in town.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_57')">A) good</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_57')">B) better</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_57')">C) best</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_57')">D) most good</li>
+  </ul>
+  <div class="explanation" id="exp_57">💡 Superlatif de good → best.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. English is _____ than Chinese for French speakers.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_58')">A) easy</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_58')">B) easier</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_58')">C) easiest</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_58')">D) more easy</li>
+  </ul>
+  <div class="explanation" id="exp_58">💡 Easy → easier (y→ier).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. He is the _____ student in the class.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_59')">A) intelligent</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_59')">B) more intelligent</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_59')">C) most intelligent</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_59')">D) intelligenter</li>
+  </ul>
+  <div class="explanation" id="exp_59">💡 3+ syllabes → the most intelligent.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. My results are _____ than last year.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_60')">A) bad</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_60')">B) worse</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_60')">C) worst</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_60')">D) more bad</li>
+  </ul>
+  <div class="explanation" id="exp_60">💡 Irrégulier : bad → worse.</div>
+</div>
+
+<h2><span class="badge badge-a2">A2</span> Les Questions – Formation et Types</h2>
+<p style="color:#64748b;">Code: GRAM-A2-006 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. _____ do you live?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_61')">A) What</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_61')">B) Where</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_61')">C) Who</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_61')">D) When</li>
+  </ul>
+  <div class="explanation" id="exp_61">💡 Lieu → Where.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. She likes coffee, _____ she?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_62')">A) does</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_62')">B) doesn't</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_62')">C) is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_62')">D) isn't</li>
+  </ul>
+  <div class="explanation" id="exp_62">💡 Phrase affirmative → tag négatif → doesn't she?</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. _____ did you arrive?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_63')">A) What</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_63')">B) Where</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_63')">C) When</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_63')">D) Who</li>
+  </ul>
+  <div class="explanation" id="exp_63">💡 Moment → When.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. _____ is your teacher?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_64')">A) What</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_64')">B) Where</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_64')">C) Who</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_64')">D) When</li>
+  </ul>
+  <div class="explanation" id="exp_64">💡 Personne → Who.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. You are a student, _____ you?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_65')">A) are</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_65')">B) aren't</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_65')">C) do</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_65')">D) don't</li>
+  </ul>
+  <div class="explanation" id="exp_65">💡 You are → aren't you?</div>
+</div>
+
+<h2><span class="badge badge-a2">A2</span> Les Adverbes de Fréquence et de Manière</h2>
+<p style="color:#64748b;">Code: GRAM-A2-007 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. She _____ goes to the gym. (tous les jours)</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_66')">A) never</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_66')">B) rarely</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_66')">C) always</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_66')">D) sometimes</li>
+  </ul>
+  <div class="explanation" id="exp_66">💡 Tous les jours = always.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. He drives _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_67')">A) careful</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_67')">B) carefully</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_67')">C) careless</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_67')">D) care</li>
+  </ul>
+  <div class="explanation" id="exp_67">💡 Adverbe de manière → carefully.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. I am _____ late for work.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_68')">A) ever</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_68')">B) never</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_68')">C) always</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_68')">D) yet</li>
+  </ul>
+  <div class="explanation" id="exp_68">💡 Toujours en retard → always.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. She speaks English _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_69')">A) fluent</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_69')">B) fluently</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_69')">C) fluence</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_69')">D) fluid</li>
+  </ul>
+  <div class="explanation" id="exp_69">💡 Adverbe → fluently.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. We _____ eat at restaurants. Maybe once a month.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_70')">A) always</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_70')">B) usually</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_70')">C) rarely</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_70')">D) never</li>
+  </ul>
+  <div class="explanation" id="exp_70">💡 Une fois par mois = rarement → rarely.</div>
+</div>
+
+<h2><span class="badge badge-b1">B1</span> Les Relatives – Who, Which, That, Where</h2>
+<p style="color:#64748b;">Code: GRAM-B1-003 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. The woman _____ works here is my aunt.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_71')">A) which</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_71')">B) who</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_71')">C) where</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_71')">D) whose</li>
+  </ul>
+  <div class="explanation" id="exp_71">💡 Personne → who.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. The book _____ I bought is interesting.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_72')">A) who</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_72')">B) which</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_72')">C) where</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_72')">D) whose</li>
+  </ul>
+  <div class="explanation" id="exp_72">💡 Chose → which/that.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. That's the restaurant _____ we had dinner.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_73')">A) who</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_73')">B) which</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_73')">C) where</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_73')">D) whose</li>
+  </ul>
+  <div class="explanation" id="exp_73">💡 Lieu → where.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. The man _____ car was stolen called the police.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_74')">A) who</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_74')">B) which</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_74')">C) whose</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_74')">D) that</li>
+  </ul>
+  <div class="explanation" id="exp_74">💡 Possession → whose.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. Paris, _____ is the capital of France, is beautiful.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_75')">A) that</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_75')">B) which</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_75')">C) who</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_75')">D) where</li>
+  </ul>
+  <div class="explanation" id="exp_75">💡 Non-définie (virgule) → which (pas that).</div>
+</div>
+
+<h2><span class="badge badge-b1">B1</span> Le Gérondif et l'Infinitif</h2>
+<p style="color:#64748b;">Code: GRAM-B1-004 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. She enjoys _____ English.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_76')">A) learn</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_76')">B) to learn</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_76')">C) learning</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_76')">D) learned</li>
+  </ul>
+  <div class="explanation" id="exp_76">💡 Enjoy + gérondif → learning.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. He decided _____ a new job.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_77')">A) find</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_77')">B) to find</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_77')">C) finding</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_77')">D) found</li>
+  </ul>
+  <div class="explanation" id="exp_77">💡 Decide + infinitif → to find.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. I avoid _____ fast food.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_78')">A) eat</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_78')">B) to eat</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_78')">C) eating</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_78')">D) ate</li>
+  </ul>
+  <div class="explanation" id="exp_78">💡 Avoid + gérondif → eating.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. We want _____ English fluently.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_79')">A) speak</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_79')">B) to speak</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_79')">C) speaking</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_79')">D) spoke</li>
+  </ul>
+  <div class="explanation" id="exp_79">💡 Want + infinitif → to speak.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. She likes _____ in the morning.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_80')">A) run</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_80')">B) to run / running</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_80')">C) ran</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_80')">D) runs</li>
+  </ul>
+  <div class="explanation" id="exp_80">💡 Like + les deux formes.</div>
+</div>
+
+<h2><span class="badge badge-b1">B1</span> Used to / Would / Be used to</h2>
+<p style="color:#64748b;">Code: GRAM-B1-005 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. I _____ play football when I was young.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_81')">A) use to</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_81')">B) used to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_81')">C) am used to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_81')">D) would to</li>
+  </ul>
+  <div class="explanation" id="exp_81">💡 Habitude passée → used to.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. She is _____ working late.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_82')">A) use to</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_82')">B) used to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_82')">C) used</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_82')">D) using to</li>
+  </ul>
+  <div class="explanation" id="exp_82">💡 Accoutumance → is used to + -ing.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. He _____ visit his grandmother every Sunday. (passé, répétition)</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_83')">A) would</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_83')">B) used</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_83')">C) was used to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_83')">D) will</li>
+  </ul>
+  <div class="explanation" id="exp_83">💡 Action répétée au passé → would.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. I'm not _____ eating spicy food.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_84')">A) use to</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_84')">B) used to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_84')">C) used</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_84')">D) using</li>
+  </ul>
+  <div class="explanation" id="exp_84">💡 Pas habitué → not used to eating.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. They _____ live in Daloa before moving to Abidjan.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_85')">A) used to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_85')">B) would</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_85')">C) use to</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_85')">D) are used to</li>
+  </ul>
+  <div class="explanation" id="exp_85">💡 État passé → used to (pas would pour les états).</div>
+</div>
+
+<h2><span class="badge badge-b2">B2</span> Les Phrasal Verbs Essentiels</h2>
+<p style="color:#64748b;">Code: GRAM-B2-003 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. Please _____ your shoes before entering.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_86')">A) take off</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_86')">B) take on</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_86')">C) take up</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_86')">D) take in</li>
+  </ul>
+  <div class="explanation" id="exp_86">💡 Enlever → take off.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. The meeting was _____ until next week.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_87')">A) put off</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_87')">B) put on</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_87')">C) put up</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_87')">D) put out</li>
+  </ul>
+  <div class="explanation" id="exp_87">💡 Reporter → put off.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. Can you _____ the volume? I can't hear.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_88')">A) turn on</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_88')">B) turn off</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_88')">C) turn up</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_88')">D) turn down</li>
+  </ul>
+  <div class="explanation" id="exp_88">💡 Augmenter → turn up.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. She _____ with a brilliant idea.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_89')">A) came up</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_89')">B) came on</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_89')">C) came off</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_89')">D) came in</li>
+  </ul>
+  <div class="explanation" id="exp_89">💡 Trouver une idée → come up with.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. I need to _____ this problem before the deadline.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_90')">A) figure out</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_90')">B) figure in</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_90')">C) figure on</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_90')">D) figure up</li>
+  </ul>
+  <div class="explanation" id="exp_90">💡 Résoudre → figure out.</div>
+</div>
+
+<h2><span class="badge badge-b2">B2</span> Le Subjonctif et les Souhaits</h2>
+<p style="color:#64748b;">Code: GRAM-B2-004 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. I wish I _____ more time.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_91')">A) have</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_91')">B) had</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_91')">C) would have</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_91')">D) having</li>
+  </ul>
+  <div class="explanation" id="exp_91">💡 Souhait présent → wish + past simple.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. If only she _____ earlier yesterday.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_92')">A) arrives</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_92')">B) arrived</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_92')">C) had arrived</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_92')">D) would arrive</li>
+  </ul>
+  <div class="explanation" id="exp_92">💡 Regret passé → if only + past perfect.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. It's time we _____ home.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_93')">A) go</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_93')">B) went</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_93')">C) going</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_93')">D) gone</li>
+  </ul>
+  <div class="explanation" id="exp_93">💡 It's time + past simple.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. I'd rather you _____ smoke here.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_94')">A) don't</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_94')">B) didn't</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_94')">C) won't</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_94')">D) wouldn't</li>
+  </ul>
+  <div class="explanation" id="exp_94">💡 Would rather + sujet + past simple.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. I wish it _____ stop raining!</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_95')">A) will</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_95')">B) would</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_95')">C) could</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_95')">D) can</li>
+  </ul>
+  <div class="explanation" id="exp_95">💡 Souhait de changement → wish + would.</div>
+</div>
+
+<h2><span class="badge badge-c1">C1</span> Les Connecteurs Logiques Avancés</h2>
+<p style="color:#64748b;">Code: GRAM-C1-002 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. The results were disappointing; _____, the team remained motivated.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_96')">A) therefore</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_96')">B) nevertheless</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_96')">C) moreover</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_96')">D) consequently</li>
+  </ul>
+  <div class="explanation" id="exp_96">💡 Concession → nevertheless (néanmoins).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. She completed the training, _____ qualifying for the promotion.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_97')">A) however</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_97')">B) thereby</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_97')">C) although</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_97')">D) despite</li>
+  </ul>
+  <div class="explanation" id="exp_97">💡 Conséquence → thereby (permettant ainsi).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. The data is inconclusive; _____, we should proceed with caution.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_98')">A) hence</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_98')">B) moreover</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_98')">C) likewise</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_98')">D) instead</li>
+  </ul>
+  <div class="explanation" id="exp_98">💡 Conclusion logique → hence (par conséquent).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. _____ the challenges, the project was delivered on time.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_99')">A) Although</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_99')">B) Despite</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_99')">C) However</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_99')">D) Nevertheless</li>
+  </ul>
+  <div class="explanation" id="exp_99">💡 Despite + nom = malgré.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. The proposal was well-written; _____, it addressed all concerns.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_100')">A) however</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_100')">B) therefore</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_100')">C) furthermore</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_100')">D) instead</li>
+  </ul>
+  <div class="explanation" id="exp_100">💡 Addition → furthermore (de plus).</div>
+</div>
+
+<h2><span class="badge badge-c1">C1</span> Le Style et le Registre</h2>
+<p style="color:#64748b;">Code: GRAM-C1-003 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. Quel registre ? 'We need to look into this matter.'</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_101')">A) Formel</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_101')">B) Neutre</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_101')">C) Informel</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_101')">D) Littéraire</li>
+  </ul>
+  <div class="explanation" id="exp_101">💡 Neutre — ni trop formel ni familier.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. Reformulation formelle de 'I got the job' :</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_102')">A) I secured the position</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_102')">B) I got hired</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_102')">C) They gave me the job</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_102')">D) I have the job</li>
+  </ul>
+  <div class="explanation" id="exp_102">💡 Secured the position = formel.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. 'Furthermore' est typique du registre :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_103')">A) Informel</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_103')">B) Neutre</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_103')">C) Formel/académique</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_103')">D) Argot</li>
+  </ul>
+  <div class="explanation" id="exp_103">💡 Furthermore = connecteur formel.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. Reformulation informelle de 'I wish to inquire about' :</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_104')">A) I want to ask about</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_104')">B) I desire to know</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_104')">C) I seek information</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_104')">D) I require details</li>
+  </ul>
+  <div class="explanation" id="exp_104">💡 Want to ask = informel.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. 'Gonna' est acceptable dans :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_105')">A) Un email professionnel</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_105')">B) Un rapport</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_105')">C) Une conversation entre amis</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_105')">D) Un CV</li>
+  </ul>
+  <div class="explanation" id="exp_105">💡 Gonna = oral informel uniquement.</div>
+</div>
+
+<h2><span class="badge badge-c2">C2</span> Nuances Idiomatiques et Registres Littéraires</h2>
+<p style="color:#64748b;">Code: GRAM-C2-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. 'To have a bee in one's bonnet' signifie :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_106')">A) Être riche</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_106')">B) Être obsédé par quelque chose</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_106')">C) Être heureux</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_106')">D) Être malade</li>
+  </ul>
+  <div class="explanation" id="exp_106">💡 Idiome = être obsédé/préoccupé par une idée.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. 'The elephant in the room' fait référence à :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_107')">A) Un gros animal</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_107')">B) Un sujet tabou que tout le monde ignore</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_107')">C) Un problème mineur</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_107')">D) Une décoration</li>
+  </ul>
+  <div class="explanation" id="exp_107">💡 Problème évident que personne n'aborde.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. Le registre de 'Hitherto, the evidence has been inconclusive' est :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_108')">A) Informel</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_108')">B) Neutre</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_108')">C) Formel académique</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_108')">D) Argot</li>
+  </ul>
+  <div class="explanation" id="exp_108">💡 Hitherto = jusqu'ici (registre très formel).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. 'To throw the baby out with the bathwater' signifie :</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_109')">A) Se débarrasser du bon en éliminant le mauvais</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_109')">B) Faire du mal à un enfant</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_109')">C) Gaspiller de l'eau</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_109')">D) Prendre un bain</li>
+  </ul>
+  <div class="explanation" id="exp_109">💡 Jeter le bébé avec l'eau du bain.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. 'Erstwhile' est synonyme de :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_110')">A) Current</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_110')">B) Former</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_110')">C) Future</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_110')">D) Occasional</li>
+  </ul>
+  <div class="explanation" id="exp_110">💡 Erstwhile = ancien/autrefois (registre littéraire).</div>
+</div>
+
+<h2><span class="badge badge-c2">C2</span> Analyse Grammaticale de Textes Authentiques</h2>
+<p style="color:#64748b;">Code: GRAM-C2-002 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. Dans 'Not unlike his predecessor, he favoured diplomacy', 'not unlike' est :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_111')">A) Une double négation</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_111')">B) Une litote</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_111')">C) Une métaphore</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_111')">D) Une hyperbole</li>
+  </ul>
+  <div class="explanation" id="exp_111">💡 Litote = atténuation par double négation.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. 'Ask not what your country can do for you' utilise :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_112')">A) L'anaphore</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_112')">B) Le chiasme</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_112')">C) L'inversion</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_112')">D) L'ellipse</li>
+  </ul>
+  <div class="explanation" id="exp_112">💡 Inversion emphatique : ask not (au lieu de do not ask).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. Le passif impersonnel 'It is believed that...' sert à :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_113')">A) Exprimer une opinion personnelle</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_113')">B) Distancier l'auteur de l'affirmation</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_113')">C) Poser une question</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_113')">D) Donner un ordre</li>
+  </ul>
+  <div class="explanation" id="exp_113">💡 Passif impersonnel = distance journalistique.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. 'Had I known, I would have acted differently' est un exemple de :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_114')">A) Subjonctif</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_114')">B) Conditionnel inversé</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_114')">C) Impératif</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_114')">D) Gérondif</li>
+  </ul>
+  <div class="explanation" id="exp_114">💡 Inversion du conditionnel type 3 (sans if).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. L'effet de 'We shall fight on the beaches, we shall fight on the landing grounds' (Churchill) repose sur :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_115')">A) La litote</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_115')">B) L'anaphore</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_115')">C) L'euphémisme</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_115')">D) L'ironie</li>
+  </ul>
+  <div class="explanation" id="exp_115">💡 Anaphore = répétition de 'we shall fight'.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Lire un Texte Court – Panneaux et Messages</h2>
+<p style="color:#64748b;">Code: READ-A1-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. 'NO ENTRY' on a sign means:</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_116')">A) Welcome</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_116')">B) You cannot go in</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_116')">C) Free parking</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_116')">D) Open</li>
+  </ul>
+  <div class="explanation" id="exp_116">💡 No entry = entrée interdite.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. 'PUSH' on a door means:</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_117')">A) Pull the door</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_117')">B) Push the door forward</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_117')">C) Lock the door</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_117')">D) Close the door</li>
+  </ul>
+  <div class="explanation" id="exp_117">💡 Push = pousser.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. 'OUT OF ORDER' means the machine is:</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_118')">A) Working</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_118')">B) New</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_118')">C) Broken</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_118')">D) Free</li>
+  </ul>
+  <div class="explanation" id="exp_118">💡 Out of order = en panne.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. A text says: 'Meeting at 3pm in room 5.' What time?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_119')">A) 3 a.m.</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_119')">B) 3 p.m.</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_119')">C) 5 p.m.</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_119')">D) Room 5</li>
+  </ul>
+  <div class="explanation" id="exp_119">💡 3pm = 15h.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. 'CAUTION: WET FLOOR' means:</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_120')">A) The floor is dry</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_120')">B) Be careful, the floor is wet</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_120')">C) The floor is clean</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_120')">D) Don't walk here ever</li>
+  </ul>
+  <div class="explanation" id="exp_120">💡 Caution = attention, sol mouillé.</div>
+</div>
+
+<h2><span class="badge badge-b2">B2</span> TOEFL Reading – Stratégies de Lecture Rapide</h2>
+<p style="color:#64748b;">Code: TOEFL-R-B2-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. Le 'skimming' consiste à :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_121')">A) Lire chaque mot</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_121')">B) Lire rapidement pour l'idée générale</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_121')">C) Traduire le texte</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_121')">D) Mémoriser le vocabulaire</li>
+  </ul>
+  <div class="explanation" id="exp_121">💡 Skimming = lecture rapide pour l'essentiel.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. Le 'scanning' est utile pour :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_122')">A) Comprendre le ton</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_122')">B) Trouver une information précise</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_122')">C) Résumer le texte</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_122')">D) Critiquer l'auteur</li>
+  </ul>
+  <div class="explanation" id="exp_122">💡 Scanning = chercher un détail spécifique.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. Dans un texte académique, la thèse se trouve généralement :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_123')">A) À la fin</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_123')">B) Au milieu</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_123')">C) Dans l'introduction</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_123')">D) Dans les notes</li>
+  </ul>
+  <div class="explanation" id="exp_123">💡 Thesis statement = fin de l'introduction.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. Les 'topic sentences' sont :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_124')">A) Les titres</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_124')">B) Les premières phrases de chaque paragraphe</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_124')">C) Les conclusions</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_124')">D) Les citations</li>
+  </ul>
+  <div class="explanation" id="exp_124">💡 Topic sentence = phrase d'ouverture du paragraphe.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. Face à un mot inconnu au TOEFL, la meilleure stratégie est :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_125')">A) Utiliser un dictionnaire</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_125')">B) Sauter le mot</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_125')">C) Deviner le sens par le contexte</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_125')">D) Demander à l'examinateur</li>
+  </ul>
+  <div class="explanation" id="exp_125">💡 Inférer le sens par le contexte.</div>
+</div>
+
+<h2><span class="badge badge-b2">B2</span> TOEFL Writing – Integrated Task</h2>
+<p style="color:#64748b;">Code: TOEFL-W-B2-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. L'Integrated Writing Task demande de :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_126')">A) Donner son opinion</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_126')">B) Synthétiser lecture + audio</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_126')">C) Rédiger une lettre</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_126')">D) Corriger des erreurs</li>
+  </ul>
+  <div class="explanation" id="exp_126">💡 Integrated = combiner lecture et écoute.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. Durée recommandée pour l'Integrated Task :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_127')">A) 10 min</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_127')">B) 20 min</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_127')">C) 30 min</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_127')">D) 45 min</li>
+  </ul>
+  <div class="explanation" id="exp_127">💡 20 minutes pour l'integrated task.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. 'The lecturer challenges the reading by stating that...' → Ce connecteur exprime :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_128')">A) L'accord</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_128')">B) Le contraste</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_128')">C) L'addition</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_128')">D) La cause</li>
+  </ul>
+  <div class="explanation" id="exp_128">💡 Challenges = contredit → contraste.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. Nombre de mots recommandé pour l'Integrated Task :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_129')">A) 100-150</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_129')">B) 150-225</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_129')">C) 250-300</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_129')">D) 400+</li>
+  </ul>
+  <div class="explanation" id="exp_129">💡 150-225 mots recommandés par ETS.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. Faut-il donner son opinion dans l'Integrated Task ?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_130')">A) Oui, toujours</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_130')">B) Non, jamais</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_130')">C) Seulement en conclusion</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_130')">D) Seulement si on est sûr</li>
+  </ul>
+  <div class="explanation" id="exp_130">💡 Non — synthèse objective uniquement.</div>
+</div>
+
+<h2><span class="badge badge-b1">B1</span> TOEIC Listening Part 1 – Photographs</h2>
+<p style="color:#64748b;">Code: TOEIC-L-B1-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. [Photo : personne au bureau] Best description:</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_131')">A) The man is sleeping.</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_131')">B) The woman is typing on a computer.</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_131')">C) They are eating lunch.</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_131')">D) The office is empty.</li>
+  </ul>
+  <div class="explanation" id="exp_131">💡 Décrire l'action visible.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. TOEIC Part 1 : combien de descriptions entend-on par photo ?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_132')">A) 2</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_132')">B) 3</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_132')">C) 4</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_132')">D) 5</li>
+  </ul>
+  <div class="explanation" id="exp_132">💡 4 descriptions, une seule correcte.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. Piège fréquent en Part 1 :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_133')">A) Description exacte</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_133')">B) Mauvais sujet (he au lieu de she)</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_133')">C) Trop de détails</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_133')">D) Réponse trop courte</li>
+  </ul>
+  <div class="explanation" id="exp_133">💡 Le mauvais sujet est le piège classique.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. 'The documents are being reviewed' = quel temps ?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_134')">A) Present simple</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_134')">B) Present continuous passive</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_134')">C) Past simple</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_134')">D) Future</li>
+  </ul>
+  <div class="explanation" id="exp_134">💡 Are being + PP = passif continu.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. Stratégie clé Part 1 :</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_135')">A) Écouter la 1re option uniquement</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_135')">B) Éliminer ce qu'on ne voit PAS</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_135')">C) Deviner avant d'écouter</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_135')">D) Toujours choisir C</li>
+  </ul>
+  <div class="explanation" id="exp_135">💡 Éliminer les descriptions non visibles.</div>
+</div>
+
+<h2><span class="badge badge-b1">B1</span> TOEIC Reading Part 5 – Incomplete Sentences</h2>
+<p style="color:#64748b;">Code: TOEIC-R-B1-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. The annual report will be _____ next Monday.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_136')">A) publish</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_136')">B) published</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_136')">C) publishing</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_136')">D) publisher</li>
+  </ul>
+  <div class="explanation" id="exp_136">💡 Passif → will be published.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. _____ the weather, the event was successful.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_137')">A) Although</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_137')">B) Despite</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_137')">C) However</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_137')">D) Because</li>
+  </ul>
+  <div class="explanation" id="exp_137">💡 Despite + nom.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. She is the most _____ candidate for the position.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_138')">A) qualify</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_138')">B) qualified</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_138')">C) qualifying</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_138')">D) qualification</li>
+  </ul>
+  <div class="explanation" id="exp_138">💡 Adjectif → qualified.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. Employees should submit requests _____ advance.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_139')">A) at</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_139')">B) on</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_139')">C) in</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_139')">D) by</li>
+  </ul>
+  <div class="explanation" id="exp_139">💡 In advance = à l'avance.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. The _____ of the new policy pleased the employees.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_140')">A) announce</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_140')">B) announced</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_140')">C) announcement</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_140')">D) announcing</li>
+  </ul>
+  <div class="explanation" id="exp_140">💡 Après 'the' → nom → announcement.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> La Nourriture et les Boissons</h2>
+<p style="color:#64748b;">Code: VOCAB-A1-004 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. I'd like a glass of _____, please.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_141')">A) bread</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_141')">B) water</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_141')">C) chicken</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_141')">D) rice</li>
+  </ul>
+  <div class="explanation" id="exp_141">💡 Water = eau.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. For breakfast, I usually have _____ and eggs.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_142')">A) toast</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_142')">B) dinner</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_142')">C) lunch</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_142')">D) steak</li>
+  </ul>
+  <div class="explanation" id="exp_142">💡 Toast and eggs = petit-déjeuner classique.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. _____ is a tropical fruit.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_143')">A) Carrot</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_143')">B) Mango</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_143')">C) Onion</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_143')">D) Potato</li>
+  </ul>
+  <div class="explanation" id="exp_143">💡 Mango = mangue (fruit tropical).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. Would you like some _____? It's very fresh.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_144')">A) fish</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_144')">B) desk</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_144')">C) shoe</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_144')">D) pen</li>
+  </ul>
+  <div class="explanation" id="exp_144">💡 Fish = poisson.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. She doesn't eat _____. She's vegetarian.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_145')">A) vegetables</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_145')">B) fruit</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_145')">C) meat</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_145')">D) rice</li>
+  </ul>
+  <div class="explanation" id="exp_145">💡 Vegetarian → no meat.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Le Corps Humain et la Santé</h2>
+<p style="color:#64748b;">Code: VOCAB-A1-005 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. I have a headache. My _____ hurts.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_146')">A) hand</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_146')">B) head</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_146')">C) heart</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_146')">D) hair</li>
+  </ul>
+  <div class="explanation" id="exp_146">💡 Headache = mal de tête → head.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. You use your _____ to see.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_147')">A) ears</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_147')">B) nose</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_147')">C) eyes</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_147')">D) mouth</li>
+  </ul>
+  <div class="explanation" id="exp_147">💡 Eyes = yeux → voir.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. She broke her _____. She can't walk.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_148')">A) arm</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_148')">B) leg</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_148')">C) finger</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_148')">D) ear</li>
+  </ul>
+  <div class="explanation" id="exp_148">💡 Can't walk → leg (jambe).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. I need to see a _____. I'm not feeling well.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_149')">A) teacher</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_149')">B) doctor</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_149')">C) driver</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_149')">D) cook</li>
+  </ul>
+  <div class="explanation" id="exp_149">💡 Pas bien → doctor.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. Your _____ pumps blood through your body.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_150')">A) brain</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_150')">B) heart</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_150')">C) lung</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_150')">D) liver</li>
+  </ul>
+  <div class="explanation" id="exp_150">💡 Heart = cœur → pompe le sang.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Les Nombres, Dates et Heures</h2>
+<p style="color:#64748b;">Code: VOCAB-A1-006 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. What time is it? 3:30 →</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_151')">A) Three thirty</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_151')">B) Three thirteen</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_151')">C) Thirty three</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_151')">D) Three three</li>
+  </ul>
+  <div class="explanation" id="exp_151">💡 3:30 = three thirty / half past three.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. The 1st of January: January _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_152')">A) one</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_152')">B) first</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_152')">C) oneth</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_152')">D) firth</li>
+  </ul>
+  <div class="explanation" id="exp_152">💡 1st = first (nombre ordinal).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. 25 + 17 = _____</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_153')">A) thirty-two</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_153')">B) forty-two</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_153')">C) fifty-two</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_153')">D) forty-three</li>
+  </ul>
+  <div class="explanation" id="exp_153">💡 25 + 17 = 42 = forty-two.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. It's 12:00 p.m. It's _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_154')">A) midnight</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_154')">B) noon</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_154')">C) evening</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_154')">D) morning</li>
+  </ul>
+  <div class="explanation" id="exp_154">💡 12:00 p.m. = noon (midi).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. What is the 7th month?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_155')">A) June</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_155')">B) July</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_155')">C) August</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_155')">D) September</li>
+  </ul>
+  <div class="explanation" id="exp_155">💡 7th month = July.</div>
+</div>
+
+<h2><span class="badge badge-a2">A2</span> Les Vêtements et la Mode</h2>
+<p style="color:#64748b;">Code: VOCAB-A2-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. She's wearing a beautiful _____.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_156')">A) dress</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_156')">B) desk</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_156')">C) door</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_156')">D) dish</li>
+  </ul>
+  <div class="explanation" id="exp_156">💡 Dress = robe.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. It's cold. I need my _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_157')">A) shorts</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_157')">B) t-shirt</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_157')">C) coat</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_157')">D) sandals</li>
+  </ul>
+  <div class="explanation" id="exp_157">💡 Froid → coat (manteau).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. These _____ are too small. Do you have a bigger size?</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_158')">A) shoes</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_158')">B) hats</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_158')">C) glasses</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_158')">D) rings</li>
+  </ul>
+  <div class="explanation" id="exp_158">💡 Size (taille) pour les chaussures.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. He always wears a _____ and tie to work.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_159')">A) shirt</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_159')">B) shorts</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_159')">C) sweater</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_159')">D) pyjama</li>
+  </ul>
+  <div class="explanation" id="exp_159">💡 Shirt and tie = tenue professionnelle.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. In summer, I prefer wearing _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_160')">A) boots</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_160')">B) scarf</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_160')">C) sandals</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_160')">D) gloves</li>
+  </ul>
+  <div class="explanation" id="exp_160">💡 Été → sandals.</div>
+</div>
+
+<h2><span class="badge badge-a2">A2</span> Les Transports et les Voyages</h2>
+<p style="color:#64748b;">Code: VOCAB-A2-002 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. I take the _____ to work every morning.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_161')">A) bus</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_161')">B) bed</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_161')">C) bath</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_161')">D) bag</li>
+  </ul>
+  <div class="explanation" id="exp_161">💡 Bus = transport en commun.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. The _____ to Yamoussoukro takes 3 hours.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_162')">A) travel</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_162')">B) journey</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_162')">C) voyage</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_162')">D) trip</li>
+  </ul>
+  <div class="explanation" id="exp_162">💡 Journey = trajet (d'un point A à B).</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. A single or _____ ticket?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_163')">A) double</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_163')">B) return</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_163')">C) back</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_163')">D) again</li>
+  </ul>
+  <div class="explanation" id="exp_163">💡 Return ticket = aller-retour.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. The plane _____ at 6 p.m.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_164')">A) departs</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_164')">B) drives</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_164')">C) rides</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_164')">D) walks</li>
+  </ul>
+  <div class="explanation" id="exp_164">💡 Departs = part/décolle.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. Excuse me, where is the nearest _____ station?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_165')">A) fire</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_165')">B) bus</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_165')">C) TV</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_165')">D) radio</li>
+  </ul>
+  <div class="explanation" id="exp_165">💡 Bus station = gare routière.</div>
+</div>
+
+<h2><span class="badge badge-a1">A1</span> Écrire des Phrases Simples</h2>
+<p style="color:#64748b;">Code: WRITE-A1-001 — 5 questions</p>
+<div class="question-block">
+  <div class="question-text">Q1. Quel ordre correct ? 'English / I / study'</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_166')">A) English I study</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_166')">B) I study English</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_166')">C) Study I English</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_166')">D) I English study</li>
+  </ul>
+  <div class="explanation" id="exp_166">💡 Ordre SVO : I study English.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2. La phrase commence par:</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_167')">A) une minuscule</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_167')">B) une majuscule</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_167')">C) un chiffre</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_167')">D) un point</li>
+  </ul>
+  <div class="explanation" id="exp_167">💡 Majuscule en début de phrase.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3. 'she is a teacher' → Correction:</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_168')">A) She is a teacher.</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_168')">B) she is a Teacher.</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_168')">C) She is a teacher</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_168')">D) she Is A teacher.</li>
+  </ul>
+  <div class="explanation" id="exp_168">💡 Majuscule + point final.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4. Complétez : 'My name _____ Kofi.'</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_169')">A) am</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_169')">B) is</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_169')">C) are</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_169')">D) be</li>
+  </ul>
+  <div class="explanation" id="exp_169">💡 My name = it → is.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5. 'I live in Abidjan' est une phrase:</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_170')">A) Interrogative</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_170')">B) Négative</li>
+    <li data-correct="true" onclick="checkAnswer(this, true, 'exp_170')">C) Affirmative</li>
+    <li data-correct="false" onclick="checkAnswer(this, false, 'exp_170')">D) Exclamative</li>
+  </ul>
+  <div class="explanation" id="exp_170">💡 Pas de question ni négation → affirmative.</div>
+</div>
+</div></body></html>

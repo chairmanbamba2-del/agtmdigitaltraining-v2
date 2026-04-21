@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AGTM Digital Academy — Excellence en apprentissage des langues</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #C8960C;
+      --gold-lt: #E2D8C0;
+      --navy: #0A1520;
+      --navy-lt: #1A2535;
+      --muted: #8AAAC0;
+      --white: #FFFFFF;
+      --black: #000000;
+      
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'Space Mono', 'Courier New', monospace;
+      
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 12px;
+      --radius-lg: 20px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: var(--font-sans);
+      background: var(--navy);
+      color: var(--white);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    /* ===== SECTION 1: NAVIGATION ===== */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(10, 21, 32, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(200, 150, 12, 0.2);
+      z-index: 1000;
+      padding: 15px 0;
+    }
+    
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      text-decoration: none;
+    }
+    
+    .logo span {
+      color: var(--white);
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+    
+    .nav-links a {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+    }
+    
+    .nav-links a:hover {
+      color: var(--gold);
+    }
+    
+    .nav-cta {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 10px 25px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn-primary {
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 700;
+    }
+    
+    .btn-primary:hover {
+      background: #E2B341;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(200, 150, 12, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    
+    /* ===== SECTION 2: HERO ===== */
+    .hero {
+      padding: 180px 0 100px;
+      background: linear-gradient(135deg, var(--navy) 0%, #0F1E2E 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 70%;
+      height: 150%;
+      background: radial-gradient(circle, rgba(200, 150, 12, 0.1) 0%, transparent 70%);
+      z-index: 0;
+    }
+    
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+    }
+    
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(200, 150, 12, 0.12);
+      border: 1px solid rgba(200, 150, 12, 0.3);
+      padding: 8px 20px;
+      border-radius: 100px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 30px;
+    }
+    
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: clamp(3rem, 5vw, 4.5rem);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      color: var(--white);
+    }
+    
+    .hero-title span {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    
+    .hero-description {
+      font-size: 1.1rem;
+      color: var(--gold-lt);
+      margin-bottom: 40px;
+      max-width: 600px;
+    }
+    
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+      margin: 50px 0;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-family: var(--font-serif);
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    
+    .hero-actions {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    
+    /* ===== SECTION 3: FORMATIONS ===== */
+    .section {
+      padding: 100px 0;
+    }
+    
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      display: block;
+    }
+    
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      font-weight: 300;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+    
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .programs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+    }
+    
+    .program-card {
+      background: var(--navy-lt);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      border: 1px solid rgba(200, 150, 12, 0.1);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .program-card:hover {
+      transform: translateY(-10px);
+      border-color: var(--gold);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .program-icon {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    
+    .program-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
+    }
+    
+    .program-name {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    
+    .program-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      background: rgba(200, 150, 12, 0.1);
+      padding: 4px 12px;
+      border-radius: 100px;
+      text-transform: uppercase;
+    }
+    
+    .program-meta {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    
+    .program-description {
+      color: var(--gold-lt);
+      margin-bottom: 25px;
+      line-height: 1.7;
+    }
+    
+    .program-features {
+      list-style: none;
+      margin-bottom: 25px;
+    }
+    
+    .program-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--white);
+    }
+    
+    .program-features li::before {
+      content: '✓';
+      color: var(--gold);
+      font-weight: bold;
+    }
+    
+    .program-price {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+    
+    .program-price span {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-family: var(--font-sans);
+    }
+    
+    /* ===== SECTION 4: AVANTAGES ===== */
+    .advantages {
+      background: linear-gradient(135deg, #0F1E2E 0%, var(--navy) 100%);
+    }
+    
+    .advantages-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+    
+    .advantage-card {
+      text-align: center;
+      padding: 40px 30px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(200, 150, 12, 0.1);
+      transition: all 0.3s;
+    }
+    
+    .advantage-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--gold);
+      background: rgba(200, 150, 12, 0.05);
+    }
+    
+    .advantage-icon {
+      font-size: 3rem;
+      margin-bottom: 25px;
+      color: var(--gold);
+    }
+    
+    .advantage-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 15px;
+    }
+    
+    .advantage-description {
+      color: var(--gold-lt);
+      line-height: 1.7;
+    }
+    
+    /* ===== SECTION 5: TARIFS ===== */
+    .pricing-table {
+      background: var(--navy-lt);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid rgba(200, 150, 12, 0.1);
+    }
+    
+    .table-header {
+      display: grid;
+      grid-template-columns: 2fr repeat(6, 1fr);
+      background: rgba(200, 150, 12, 0.1);
+      padding: 20px;
+      border-bottom: 1px solid rgba(200, 150, 12, 0.2);
+    }
+    
+    .table-header-cell {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      text-transform: uppercase;
+      text-align: center;
+    }
+    
+    .table-row {
+      display: grid;
+      grid-template-columns: 2fr repeat(6, 1fr);
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+    }
+    
+    .table-row:last-child {
+      border-bottom: none;
+    }
+    
+    .table-row:hover {
+      background: rgba(200, 150, 12, 0.05);
+    }
+    
+    .program-cell {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    
+    .price-cell {
+      text-align: center;
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    
+    .price-cell span {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-family: var(--font-sans);
+    }
+    
+    /* ===== SECTION 6: ASSISTANT IA ===== */
+    .ai-section {
+      background: linear-gradient(135deg, #1A2535 0%, #0F1E2E 100%);
+    }
+    
+    .ai-tiers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+    }
+    
+    .ai-tier {
+      background: var(--navy);
+      border-radius: var(--radius-lg);
+      padding: 40px 30px;
+      border: 2px solid transparent;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .ai-tier.featured {
+      border-color: var(--gold);
+      transform: scale(1.05);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .ai-tier-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--navy);
+      background: var(--gold);
+      padding: 5px 15px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    
+    .ai-tier-name {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+    
+    .ai-tier-price {
+      font-family: var(--font-serif);
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 30px;
+    }
+    
+    .ai-tier-price span {
+      font-size: 1rem;
+      color: var(--muted);
+      font-family: var(--font-sans);
+    }
+    
+    .ai-features {
+      list-style: none;
+      margin-bottom: 30px;
+    }
+    
+    .ai-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      color: var(--gold-lt);
+    }
+    
+    .ai-features li::before {
+      content: '→';
+      color: var(--gold);
+    }
+    
+    /* ===== SECTION 7: TÉMOIGNAGES ===== */
+    .testimonials-slider {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .testimonials-track {
+      display: flex;
+      gap: 30px;
+      animation: scroll 30s linear infinite;
+    }
+    
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(-350px * 3 - 30px * 2)); }
+    }
+    
+    .testimonial-card {
+      flex: 0 0 350px;
+      background: var(--navy-lt);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      border: 1px solid rgba(200, 150, 12, 0.1);
+    }
+    
+    .testimonial-content {
+      font-style: italic;
+      color: var(--gold-lt);
+      margin-bottom: 25px;
+      line-height: 1.7;
+    }
+    
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .author-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      color: var(--navy);
+      font-weight: 600;
+    }
+    
+    .author-info h4 {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      color: var(--white);
+      margin-bottom: 5px;
+    }
+    
+    .author-info p {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    
+    /* ===== SECTION 8: CTA FINAL ===== */
+    .cta-final {
+      background: linear-gradient(135deg, var(--navy) 0%, #0F1E2E 100%);
+      text-align: center;
+      padding: 100px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .cta-final::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 50%, rgba(200, 150, 12, 0.1) 0%, transparent 50%);
+      z-index: 0;
+    }
+    
+    .cta-content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .cta-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      font-weight: 300;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+    
+    .cta-title span {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    
+    .cta-description {
+      font-size: 1.1rem;
+      color: var(--gold-lt);
+      margin-bottom: 40px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .cta-actions {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .btn-lg {
+      padding: 15px 35px;
+      font-size: 0.85rem;
+    }
+    
+    /* ===== SECTION 9: FOOTER ===== */
+    .footer {
+      background: #0A1018;
+      padding: 80px 0 40px;
+      border-top: 1px solid rgba(200, 150, 12, 0.1);
+    }
+    
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+    
+    .footer-col h3 {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      color: var(--gold);
+      margin-bottom: 25px;
+    }
+    
+    .footer-links {
+      list-style: none;
+    }
+    
+    .footer-links li {
+      margin-bottom: 12px;
+    }
+    
+    .footer-links a {
+      color: var(--gold-lt);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    .footer-links a:hover {
+      color: var(--gold);
+    }
+    
+    .contact-info {
+      color: var(--gold-lt);
+      line-height: 1.8;
+    }
+    
+    .contact-info strong {
+      color: var(--white);
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      padding-top: 40px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    
+    .footer-bottom a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .hero-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .advantages-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .ai-tiers {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      
+      .ai-tier.featured {
+        transform: none;
+      }
+      
+      .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .table-header, .table-row {
+        grid-template-columns: 1.5fr repeat(3, 1fr);
+      }
+      
+      .table-header-cell:nth-child(n+5),
+      .table-row > div:nth-child(n+5) {
+        display: none;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      
+      .mobile-menu-btn {
+        display: block;
+      }
+      
+      .hero {
+        padding: 150px 0 80px;
+      }
+      
+      .hero-actions {
+        flex-direction: column;
+      }
+      
+      .programs-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .advantages-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .cta-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .table-header, .table-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .table-header-cell:nth-child(n+3),
+      .table-row > div:nth-child(n+3) {
+        display: none;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 2.5rem;
+      }
+      
+      .section-title {
+        font-size: 2rem;
+      }
+      
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .btn {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- SECTION 1: Navigation -->
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="#" class="logo">AGTM<span>Digital Academy</span></a>
+      
+      <button class="mobile-menu-btn">☰</button>
+      
+      <div class="nav-links">
+        <a href="#formations">Formations</a>
+        <a href="#avantages">Avantages</a>
+        <a href="#tarifs">Tarifs</a>
+        <a href="#assistant-ia">Assistant IA</a>
+        <a href="#temoignages">Témoignages</a>
+      </div>
+      
+      <div class="nav-cta">
+        <a href="dashboard.html?marketing=1" class="btn btn-secondary">📚 Brochure</a>
+        <a href="dashboard.html" class="btn btn-primary">🔑 Espace Apprenant</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SECTION 2: Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">🏆 Excellence académique certifiée</div>
+        <h1 class="hero-title">Maîtrisez l'anglais avec <span>AGTM Digital Academy</span></h1>
+        <p class="hero-description">
+          Formations sur mesure adaptées à vos objectifs professionnels et académiques. 
+          Pédagogie innovante combinant expertise humaine et intelligence artificielle.
+        </p>
+        
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-number">500+</div>
+            <div class="stat-label">Apprenants formés</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number">95%</div>
+            <div class="stat-label">Taux de satisfaction</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number">8+</div>
+            <div class="stat-label">Formateurs certifiés</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number">A1→C1</div>
+            <div class="stat-label">Niveaux CECRL</div>
+          </div>
+        </div>
+        
+        <div class="hero-actions">
+          <a href="#formations" class="btn btn-primary">📚 Découvrir nos formations</a>
+          <a href="#cta" class="btn btn-secondary">📞 Séance découverte gratuite</a>
+          <a href="dashboard.html?marketing=1" class="btn btn-secondary">📋 Télécharger brochure</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: Formations -->
+  <section id="formations" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="eyebrow">Nos programmes</span>
+        <h2 class="section-title">Formations certifiantes adaptées à vos besoins</h2>
+        <p class="section-subtitle">
+          6 programmes spécialisés conçus pour atteindre vos objectifs linguistiques
+        </p>
+      </div>
+      
+      <div class="programs-grid">
+        <!-- Programme 1 -->
+        <div class="program-card">
+          <div class="program-icon">🌍</div>
+          <div class="program-header">
+            <h3 class="program-name">Anglais Général</h3>
+            <span class="program-badge">Populaire</span>
+          </div>
+          <div class="program-meta">
+            <span>Niveaux: A1→C1</span>
+            <span>Durée: 3–12 mois</span>
+          </div>
+          <p class="program-description">
+            Cours en petits groupes avec suivi personnalisé. Développez vos compétences 
+            en compréhension et expression orale/écrite.
+          </p>
+          <ul class="program-features">
+            <li>Cours en groupes de 6-8 personnes</li>
+            <li>Suivi pédagogique individuel</li>
+            <li>Exercices interactifs quotidiens</li>
+            <li>Certificat de niveau CECRL</li>
+          </ul>
+          <div class="program-price">35 000 <span>FCFA/mois</span></div>
+          <a href="dashboard.html" class="btn btn-primary">S'inscrire</a>
+        </div>
+        
+        <!-- Programme 2 -->
+        <div class="program-card">
+          <div class="program-icon">💼</div>
+          <div class="program-header">
+            <h3 class="program-name">Business English</h3>
+            <span class="program-badge">Professionnel</span>
+          </div>
+          <div class="program-meta">
+            <span>Niveaux: B1→C1</span>
+            <span>Durée: 2–6 mois</span>
+          </div>
+          <p class="program-description">
+            Maîtrisez l'anglais des affaires : réunions, présentations, négociations, 
+            rédaction professionnelle.
+          </p>
+          <ul class="program-features">
+            <li>Simulations de réunions</li>
+            <li>Rédaction d'emails professionnels</li>
+            <li>Présentations commerciales</li>
+            <li>Vocabulaire sectoriel</li>
+          </ul>
+          <div class="program-price">50 000 <span>FCFA/mois</span></div>
+          <a href="dashboard.html" class="btn btn-primary">S'inscrire</a>
+        </div>
+        
+        <!-- Programme 3 -->
+        <div class="program-card">
+          <div class="program-icon">🏆</div>
+          <div class="program-header">
+            <h3 class="program-name">Préparation TOEIC</h3>
+            <span class="program-badge">Certification</span>
+          </div>
+          <div class="program-meta">
+            <span>Niveaux: B1→B2</span>
+            <span>Durée: 2–3 mois</span>
+          </div>
+          <p class="program-description">
+            Programme intensif pour maximiser votre score TOEIC. Examens blancs réguliers 
+            et stratégies de test.
+          </p>
+          <ul class="program-features">
+            <li>Examens blancs hebdomadaires</li>
+            <li>Stratégies de gestion du temps</li>
+            <li>Focus listening & reading</li>
+            <li>Score cible 700+ garanti</li>
+          </ul>
+          <div class="program-price">60 000 <span>FCFA/mois</span></div>
+          <a href="dashboard.html" class="btn btn-primary">S'inscrire</a>
+        </div>
+        
+        <!-- Programme 4 -->
+        <div class="program-card">
+          <div class="program-icon">🎓</div>
+          <div class="program-header">
+            <h3 class="program-name">Préparation TOEFL</h3>
+            <span class="program-badge">Universitaire</span>
+          </div>
+          <div class="program-meta">
+            <span>Niveaux: B2→C1</span>
+            <span>Durée: 3–4 mois</span>
+          </div>
+          <p class="program-description">
+            Programme complet pour réussir le TOEFL iBT. Développement des 4 compétences 
+            avec focus sur les integrated tasks.
+          </p>
+          <ul class="program-features">
+            <li>4 compétences évaluées</li>
+            <li>Essays académiques</li>
+            <li>Integrated speaking tasks</li>
+            <li>Score cible 80+</li>
+          </ul>
+          <div class="program-price">65 000 <span>FCFA/mois</span></div>
+          <a href="dashboard.html" class="btn btn-primary">S'inscrire</a>
+        </div>
+        
+        <!-- Programme 5 -->
+        <div class="program-card">
+          <div class="program-icon">👨‍👩‍👧‍👦</div>
+          <div class="program-header">
+            <h3 class="program-name">Anglais Junior</h3>
+            <span class="program-badge">Jeunes apprenants</span>
+          </div>
+          <div class="program-meta">
+            <span>Niveaux: Débutant→B1</span>
+            <span>Durée: 6–24 mois</span>
+          </div>
+          <p class="program-description">
+            Programme ludique et interactif pour les 8-16 ans. Apprentissage par le jeu 
+            et activités créatives.
+          </p>
+          <ul class="program-features">
+            <li>Méthode ludique et interactive</li>
+            <li>Activités créatives</li>
+            <li>Suivi parental régulier</li>
+            <li>Certificats de progression</li>
+          </ul>
+          <div class="program-price">25 000 <span>FCFA/mois</span></div>
+          <a href="dashboard.html" class="btn btn-primary">S'inscrire</a>
+        </div>
+        
+        <!-- Programme 6 -->
+        <div class="program-card">
+          <div class="program-icon">🎯</div>
+          <div class="program-header">
+            <h3 class="program-name">Cours Particuliers</h3>
+            <span class="program-badge">Sur mesure</span>
+          </div>
+          <div class="program-meta">
+            <span>Tous niveaux</span>
+            <span>Flexible</span>
+          </div>
+          <p class="program-description">
+            Programme personnalisé 100% adapté à vos objectifs spécifiques. Horaires 
+            flexibles et contenu sur mesure.
+          </p>
+          <ul class="program-features">
+            <li>Programme 100% personnalisé</li>
+            <li>Horaires flexibles</li>
+            <li>Focus sur vos objectifs</li>
+            <li>Progression accélérée</li>
+          </ul>
+          <div class="program-price">75 000 <span>FCFA/mois</span></div>
+          <a href="dashboard.html" class="btn btn-primary">S'inscrire</a>
+        </div>
+      </div>
+    </div>
+  </section>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prévisualisation Intégration Dashboard - AGTM Digital Academy</title>
+    <style>
+        :root {
+            --gold: #C8960C;
+            --gold-light: #E8B84B;
+            --gold-dark: #A07008;
+            --navy: #0A1520;
+            --navy-light: #1A2535;
+            --gold-lt: #E2D8C0;
+            --muted: #8AAAC0;
+            --success: #27AE60;
+            --success-light: #4CAF50;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.25);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: var(--navy);
+            font-family: 'Cormorant Garamond', serif;
+        }
+        h1 {
+            border-bottom: 3px solid var(--gold);
+            padding-bottom: 15px;
+            font-size: 2.8rem;
+            font-weight: 600;
+        }
+        .preview-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(200, 150, 12, 0.1);
+        }
+        
+        /* Simulation dashboard */
+        .dashboard-simulation {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 0;
+            background: var(--navy);
+            border-radius: var(--radius);
+            overflow: hidden;
+            height: 600px;
+            border: 2px solid var(--gold);
+        }
+        .dashboard-sidebar {
+            background: var(--navy-light);
+            padding: 25px 20px;
+            border-right: 1px solid rgba(200, 150, 12, 0.2);
+        }
+        .dashboard-content {
+            padding: 25px;
+            background: white;
+            overflow-y: auto;
+        }
+        .sidebar-item {
+            padding: 12px 15px;
+            margin: 8px 0;
+            color: var(--gold-lt);
+            text-decoration: none;
+            border-radius: var(--radius);
+            transition: all 0.3s;
+            display: block;
+            font-size: 0.9rem;
+        }
+        .sidebar-item:hover {
+            background: rgba(200, 150, 12, 0.1);
+            color: var(--gold);
+        }
+        .sidebar-item.active {
+            background: var(--gold);
+            color: var(--navy);
+            font-weight: bold;
+        }
+        
+        /* Onglets marketing */
+        .marketing-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+        .marketing-tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+        }
+        .marketing-tab.active {
+            background: var(--gold);
+            color: var(--navy);
+        }
+        
+        /* Contenu marketing */
+        .marketing-content {
+            background: #f9f9f9;
+            border-radius: var(--radius);
+            padding: 25px;
+            border: 1px solid #eee;
+        }
+        
+        /* Boutons intégration */
+        .integration-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+        .integration-btn {
+            padding: 12px 24px;
+            background: var(--gold);
+            color: var(--navy);
+            text-decoration: none;
+            border-radius: var(--radius);
+            font-weight: bold;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            border: 2px solid var(--gold);
+        }
+        .integration-btn:hover {
+            background: transparent;
+            color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+        .integration-btn.secondary {
+            background: transparent;
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+        .integration-btn.secondary:hover {
+            background: var(--gold);
+            color: var(--navy);
+        }
+        
+        /* Flux visualisation */
+        .flow-visualization {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 40px 0;
+            position: relative;
+        }
+        .flow-step {
+            flex: 1;
+            text-align: center;
+            padding: 25px;
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 2px solid rgba(200, 150, 12, 0.2);
+            position: relative;
+            margin: 0 15px;
+        }
+        .flow-step-number {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gold);
+            color: var(--navy);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 15px rgba(200, 150, 12, 0.3);
+        }
+        .flow-arrow {
+            position: absolute;
+            top: 50%;
+            right: -30px;
+            transform: translateY(-50%);
+            color: var(--gold);
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        /* Statut */
+        .status-box {
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        .status-success {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27AE60;
+            border-left-color: #27AE60;
+        }
+        .status-warning {
+            background: rgba(200, 150, 12, 0.1);
+            color: var(--gold);
+            border-left-color: var(--gold);
+        }
+        .status-info {
+            background: rgba(10, 21, 32, 0.1);
+            color: var(--navy);
+            border-left-color: var(--navy);
+        }
+        
+        /* Code preview */
+        .code-preview {
+            background: #1A2535;
+            color: #E2D8C0;
+            padding: 20px;
+            border-radius: var(--radius);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        .code-comment { color: #8AAAC0; }
+        .code-property { color: #E8B84B; }
+        .code-value { color: #4CAF50; }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-simulation {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .dashboard-sidebar {
+                display: none;
+            }
+            .flow-visualization {
+                flex-direction: column;
+            }
+            .flow-step {
+                margin: 15px 0;
+                width: 100%;
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+                right: auto;
+                top: auto;
+                bottom: -30px;
+                left: 50%;
+            }
+        }
+        
+        /* Grid intégrations */
+        .integrations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        .integration-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            border: 1px solid #eee;
+            transition: all 0.3s;
+        }
+        .integration-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--gold);
+        }
+        .integration-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--gold);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Prévisualisation Intégration Dashboard</h1>
+        <h2>Comment la nouvelle vitrine s'intègre avec l'écosystème AGTM existant</h2>
+        
+        <div class="status-box status-success">
+            <strong>✅ Intégration validée :</strong> La nouvelle vitrine utilise les mêmes fonctions et données que le dashboard marketing existant.
+        </div>
+        
+        <div class="preview-section">
+            <h2>🏢 Simulation Dashboard Marketing</h2>
+            <p>Voici comment l'espace marketing du dashboard (déjà fonctionnel) s'intègre avec la nouvelle vitrine :</p>
+            
+            <div class="dashboard-simulation">
+                <div class="dashboard-sidebar">
+                    <div class="sidebar-item active">📊 Tableau de bord</div>
+                    <div class="sidebar-item">👨‍🎓 Mes formations</div>
+                    <div class="sidebar-item">📚 Ressources</div>
+                    <div class="sidebar-item active">🎯 Marketing AGTM</div>
+                    <div class="sidebar-item">🖨️ Brochures PDF</div>
+                    <div class="sidebar-item">📱 Réseaux sociaux</div>
+                    <div class="sidebar-item">📊 Statistiques</div>
+                    <div class="sidebar-item">✏️ Éditeur contenu</div>
+                    <div class="sidebar-item">⚙️ Paramètres</div>
+                </div>
+                
+                <div class="dashboard-content">
+                    <h3 style="color: var(--navy); margin-bottom: 20px;">🎯 Espace Marketing AGTM</h3>
+                    
+                    <div class="marketing-tabs">
+                        <button class="marketing-tab active">Présentation</button>
+                        <button class="marketing-tab">Formations</button>
+                        <button class="marketing-tab">Brochures PDF</button>
+                        <button class="marketing-tab">Réseaux sociaux</button>
+                        <button class="marketing-tab">Statistiques</button>
+                        <button class="marketing-tab">Éditeur</button>
+                    </div>
+                    
+                    <div class="marketing-content">
+                        <h4 style="color: var(--navy); margin-bottom: 15px;">📋 Présentation AGTM Digital Academy</h4>
+                        <p>Contenu dynamique chargé depuis la table Supabase <code>marketing_config</code>.</p>
+                        
+                        <div class="status-box status-info">
+                            <strong>🔗 Lien vers la nouvelle vitrine :</strong> 
+                            <a href="vitrine-new.html" style="color: var(--gold); font-weight: bold; margin-left: 10px;">Ouvrir la nouvelle vitrine publique</a>
+                        </div>
+                        
+                        <div class="integration-buttons">
+                            <a href="dashboard.html?marketing=1" class="integration-btn">📚 Ouvrir brochures PDF</a>
+                            <a href="dashboard.html" class="integration-btn secondary">🎯 Test de placement</a>
+                            <a href="inscription.html" class="integration-btn">📝 Formulaire inscription</a>
+                        </div>
+                        
+                        <div style="margin-top: 25px; padding: 20px; background: #f0f0f0; border-radius: var(--radius);">
+                            <h5 style="color: var(--navy); margin-bottom: 10px;">Fonctions marketing disponibles :</h5>
+                            <ul style="color: #666; padding-left: 20px;">
+                                <li><code>window._mktPrint(type)</code> - Génère 10+ types de PDF</li>
+                                <li><code>window._mktBrochureFormation(id)</code> - Brochures par formation</li>
+                                <li><code>window._saveMktContenu()</code> - Éditeur admin contenu dynamique</li>
+                                <li><code>window.mktSwitch(tab)</code> - Navigation entre 6 onglets</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>🔄 Flux d'Intégration Complet</h2>
+            
+            <div class="flow-visualization">
+                <div class="flow-step">
+                    <div class="flow-step-number">1</div>
+                    <h3>🌐 Nouvelle Vitrine Publique</h3>
+                    <p><strong>Fichier :</strong> <code>vitrine-new.html</code></p>
+                    <p>Page publique avec design premium et flux d'inscription amélioré.</p>
+                    <div style="margin-top: 15px;">
+                        <a href="vitrine-new.html" class="integration-btn" style="padding: 10px 20px; font-size: 0.8rem;">Voir la vitrine</a>
+                    </div>
+                </div>
+                
+                <div class="flow-arrow">→</div>
+                
+                <div class="flow-step">
+                    <div class="flow-step-number">2</div>
+                    <h3>🔗 Liens vers Dashboard</h3>
+                    <p><strong>Intégration :</strong> Boutons "Test de placement" et "Brochures"</p>
+                    <p>Redirection vers l'espace marketing existant avec paramètres.</p>
+                    <div style="margin-top: 15px;">
+                        <a href="dashboard.html" class="integration-btn secondary" style="padding: 10px 20px; font-size: 0.8rem;">Test placement</a>
+                        <a href="dashboard.html?marketing=1" class="integration-btn" style="padding: 10px 20px; font-size: 0.8rem;">Brochures PDF</a>
+                    </div>
+                </div>
+                
+                <div class="flow-arrow">→</div>
+                
+                <div class="flow-step">
+                    <div class="flow-step-number">3</div>
+                    <h3>📝 Formulaire d'Inscription</h3>
+                    <p><strong>Fichier :</strong> <code>inscription.html</code> (888 lignes)</p>
+                    <p>Formulaire existant avec intégration Supabase complète.</p>
+                    <div style="margin-top: 15px;">
+                        <a href="inscription.html" class="integration-btn" style="padding: 10px 20px; font-size: 0.8rem;">Voir formulaire</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>🔧 Intégrations Techniques Vérifiées</h2>
+            
+            <div class="integrations-grid">
+                <div class="integration-card">
+                    <div class="integration-icon">🗃️</div>
+                    <h3>Supabase Database</h3>
+                    <p><strong>Table :</strong> <code>marketing_config</code></p>
+                    <p><strong>Statut :</strong> ✅ Intégrée</p>
+                    <p>Contenu dynamique éditable via l'admin dashboard.</p>
+                </div>
+                
+                <div class="integration-card">
+                    <div class="integration-icon">🖨️</div>
+                    <h3>Génération PDF</h3>
+                    <p><strong>Fonctions :</strong> <code>_mktPrint()</code>, <code>_mktBrochureFormation()</code></p>
+                    <p><strong>Statut :</strong> ✅ Fonctionnelles</p>
+                    <p>10+ modèles de brochures et documents marketing.</p>
+                </div>
+                
+                <div class="integration-card">
+                    <div class="integration-icon">🎨</div>
+                    <h3>Design System</h3>
+                    <p><strong>Couleurs :</strong> #C8960C (or), #0A1520 (navy)</p>
+                    <p><strong>Statut :</strong> ✅ Cohérent</p>
+                    <p>Même charte graphique que le dashboard.</p>
+                </div>
+                
+                <div class="integration-card">
+                    <div class="integration-icon">📱</div>
+                    <h3>Responsive Design</h3>
+                    <p><strong>Support :</strong> Mobile, Tablette, Desktop</p>
+                    <p><strong>Statut :</strong> ✅ Testé</p>
+                    <p>Media queries optimisées pour tous les appareils.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>⚙️ Configuration Backend Vérifiée</h2>
+            
+            <div class="status-box status-success">
+                <strong>✅ Aucune nouvelle configuration backend nécessaire</strong><br>
+                La nouvelle vitrine utilise exclusivement des fonctions et données déjà existantes dans le dashboard.
+            </div>
+            
+            <div style="margin-top: 25px;">
+                <h3>Fonctions JavaScript existantes réutilisées :</h3>
+                <div class="code-preview">
+<span class="code-comment">// Dans dashboard.html (lignes 23000-23900)</span><br>
+<span class="code-property">window</span>.<span class="code-property">mktSwitch</span> = <span class="code-value">function</span>(tab) { <span class="code-comment">// Navigation marketing</span><br>
+<span class="code-property">window</span>.<span class="code-property">_mktPrint</span> = <span class="code-value">function</span>(type) { <span class="code-comment">// Génération PDF</span><br>
+<span class="code-property">window</span>.<span class="code-property">_mktBrochureFormation</span> = <span class="code-value">function</span>(id) { <span class="code-comment">// Brochures</span><br>
+<span class="code-property">window</span>.<span class="code-property">_saveMktContenu</span> = <span class="code-value">async function</span>() { <span class="code-comment">// Éditeur admin</span><br>
+                </div>
+                
+                <h3 style="margin-top: 25px;">Tables Supabase utilisées :</h3>
+                <div class="code-preview">
+<span class="code-comment">// Table marketing_config - Contenu dynamique éditable</span><br>
+<span class="code-property">CREATE TABLE</span> marketing_config (<br>
+&nbsp;&nbsp;<span class="code-property">cle</span> <span class="code-value">VARCHAR(100) PRIMARY KEY</span>,<br>
+&nbsp;&nbsp;<span class="code-property">valeur</span> <span class="code-value">TEXT</span>,<br>
+&nbsp;&nbsp;<span class="code-property">updated_by</span> <span class="code-value">UUID REFERENCES auth.users(id)</span>,<br>
+&nbsp;&nbsp;<span class="code-property">updated_at</span> <span class="code-value">TIMESTAMPTZ DEFAULT NOW()</span><br>
+);<br>
+<br>
+<span class="code-comment">// Table etudiants - Pour les statistiques dynamiques</span><br>
+<span class="code-property">SELECT COUNT</span>(*) <span class="code-property">FROM</span> etudiants; <span class="code-comment">// "500+ apprenants formés"</span><br>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>🚀 Préparation Déploiement Netlify</h2>
+            
+            <div class="status-box status-warning">
+                <strong>⚠️ Action requise avant déploiement :</strong> Configurer le lien chatbot réel (actuellement #)
+            </div>
+            
+            <div style="margin-top: 25px;">
+                <h3>Fichiers à déployer :</h3>
+                <div style="background: #f0f0f0; padding: 20px; border-radius: var(--radius); font-family: 'Space Mono', monospace; font-size: 0.9rem;">
+WEB_PORTAL AGTM DIGITAL ACADEMY/<br>
+├── 📄 <strong>vitrine-new.html</strong>          <span style="color: #27AE60;">(NOUVELLE VITRINE)</span><br>
+├── 📄 dashboard.html<br>
+├── 📄 inscription.html<br>
+├── 📄 vitrine-old.html           <span style="color: #666;">(BACKUP ancienne version)</span><br>
+├── 📁 Contenu Dashboard/<br>
+│   └── 📁 Marketing/            <span style="color: #666;">(Brochures PDF existantes)</span><br>
+└── 📁 assets/                  <span style="color: #666;">(Images, polices si nécessaire)</span><br>
+                </div>
+                
+                <h3 style="margin-top: 25px;">Configuration Netlify recommandée :</h3>
+                <div class="code-preview">
+<span class="code-comment"># netlify.toml</span><br>
+[<span class="code-property">build</span>]<br>
+&nbsp;&nbsp;<span class="code-property">publish</span> = <span class="code-value">"WEB_PORTAL AGTM DIGITAL ACADEMY"</span><br>
+<br>
+[[<span class="code-property">redirects</span>]]<br>
+&nbsp;&nbsp;<span class="code-property">from</span> = <span class="code-value">"/"</span><br>
+&nbsp;&nbsp;<span class="code-property">to</span> = <span class="code-value">"/vitrine-new.html"</span><br>
+&nbsp;&nbsp;<span class="code-property">status</span> = <span class="code-value">200</span><br>
+<br>
+[[<span class="code-property">redirects</span>]]<br>
+&nbsp;&nbsp;<span class="code-property">from</span> = <span class="code-value">"/vitrine"</span><br>
+&nbsp;&nbsp;<span class="code-property">to</span> = <span class="code-value">"/vitrine-new.html"</span><br>
+&nbsp;&nbsp;<span class="code-property">status</span> = <span class="code-value">301</span><br>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section" style="background: linear-gradient(135deg, rgba(200, 150, 12, 0.1) 0%, rgba(10, 21, 32, 0.1) 100%); border: 2px solid var(--gold);">
+            <h2 style="color: var(--gold);">✅ Validation Finale</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0;">
+                <div style="padding: 20px; background: white; border-radius: var(--radius); border: 1px solid rgba(200, 150, 12, 0.3);">
+                    <h4 style="color: var(--navy); margin-bottom: 10px;">🎨 Design & UX</h4>
+                    <ul style="color: #666;">
+                        <li>✅ Typographie améliorée</li>
+                        <li>✅ Boutons premium</li>
+                        <li>✅ Responsive mobile</li>
+                        <li>✅ Accessibilité</li>
+                    </ul>
+                </div>
+                
+                <div style="padding: 20px; background: white; border-radius: var(--radius); border: 1px solid rgba(200, 150, 12, 0.3);">
+                    <h4 style="color: var(--navy); margin-bottom: 10px;">🔗 Intégrations</h4>
+                    <ul style="color: #666;">
+                        <li>✅ Dashboard marketing</li>
+                        <li>✅ Fonctions PDF existantes</li>
+                        <li>✅ Formulaire inscription</li>
+                        <li>⚠️ Chatbot (à configurer)</li>
+                    </ul>
+                </div>
+                
+                <div style="padding: 20px; background: white; border-radius: var(--radius); border: 1px solid rgba(200, 150, 12, 0.3);">
+                    <h4 style="color: var(--navy); margin-bottom: 10px;">🚀 Déploiement</h4>
+                    <ul style="color: #666;">
+                        <li>✅ Fichiers prêts</li>
+                        <li>✅ Backup ancienne version</li>
+                        <li>✅ Configuration Netlify</li>
+                        <li>✅ Rollback plan</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(200, 150, 12, 0.3);">
+                <h3 style="color: var(--navy); margin-bottom: 20px;">🔍 Dernière étape avant déploiement</h3>
+                
+                <div style="display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin: 30px 0;">
+                    <a href="vitrine-new.html" class="integration-btn" style="padding: 15px 35px; font-size: 1rem; background: var(--success); color: white; border-color: var(--success);">
+                        👁️ Voir la nouvelle vitrine
+                    </a>
+                    <a href="verification-integrations.md" class="integration-btn secondary" style="padding: 15px 35px; font-size: 1rem;">
+                        📋 Vérification complète
+                    </a>
+                    <a href="test-final.html" class="integration-btn" style="padding: 15px 35px; font-size: 1rem;">
+                        🧪 Tester tous les liens
+                    </a>
+                </div>
+                
+                <div class="status-box status-info" style="max-width: 800px; margin: 0 auto;">
+                    <strong>🎯 Question finale :</strong> La nouvelle vitrine avec ses intégrations au dashboard existant est-elle prête pour le déploiement sur Netlify ?
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

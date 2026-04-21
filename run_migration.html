@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <title>AGTM — Migration Base de Données</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #09111E; color: #E2D8C0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { background: linear-gradient(135deg,#152540,#241C08); border: 1px solid rgba(200,150,12,.35); border-radius: 18px; width: 100%; max-width: 680px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+    .hd { background: linear-gradient(90deg,#1C3258,#2C2208); padding: 22px 28px; border-bottom: 2px solid #C8960C; }
+    .hd h1 { color: #E8B84B; font-size: 1.1rem; font-weight: 900; }
+    .hd p { color: #8AAAC0; font-size: .78rem; margin-top: 5px; }
+    .body { padding: 28px; }
+    .step { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
+    .step-num { width: 30px; height: 30px; border-radius: 50%; background: #C8960C; color: #0D1B2A; font-weight: 900; font-size: .85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-content { flex: 1; }
+    .step-title { font-weight: 700; color: #E8B84B; font-size: .88rem; margin-bottom: 3px; }
+    .step-desc { font-size: .75rem; color: #8AAAC0; line-height: 1.5; }
+    .btn { width: 100%; padding: 15px; border-radius: 12px; background: linear-gradient(135deg,#D4A010,#B88008); border: none; color: #0D1B2A; font-weight: 900; font-size: 1rem; cursor: pointer; margin-top: 8px; transition: opacity .2s; }
+    .btn:hover { opacity: .88; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .log { margin-top: 20px; background: #060D1A; border: 1px solid #1E3050; border-radius: 10px; padding: 16px; font-family: monospace; font-size: .75rem; line-height: 1.8; max-height: 320px; overflow-y: auto; display: none; }
+    .ok  { color: #4AE090; }
+    .err { color: #E04A4A; }
+    .inf { color: #4A90D9; }
+    .warn { color: #E8B84B; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .65rem; font-weight: 700; margin-left: 6px; }
+    .badge-ok { background: #1A3A1A; color: #4AE090; }
+    .badge-err { background: #3A1A1A; color: #E04A4A; }
+    .progress { height: 6px; background: #0D1B2A; border-radius: 3px; overflow: hidden; margin-top: 10px; display: none; }
+    .progress-bar { height: 100%; background: #C8960C; border-radius: 3px; transition: width .3s; }
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    th { background: #0A1520; color: #C8960C; font-size: .7rem; padding: 8px 12px; text-align: left; }
+    td { padding: 7px 12px; font-size: .72rem; border-top: 1px solid #1E3050; }
+    td.ok-col { color: #4AE090; font-weight: 700; }
+    td.err-col { color: #E04A4A; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="hd">
+      <h1>🛠️ AGTM — Migration Base de Données</h1>
+      <p>Ajout des colonnes de suivi du quota de séances dans Supabase</p>
+    </div>
+    <div class="body">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Colonnes à ajouter — table <code style="color:#4A90D9">etudiants</code></div>
+          <div class="step-desc">
+            <code>quota_seances</code> (INT, défaut 24) &nbsp;·&nbsp;
+            <code>frequence_semaine</code> (INT, défaut 2) &nbsp;·&nbsp;
+            <code>date_debut_contrat</code> (DATE) &nbsp;·&nbsp;
+            <code>date_fin_contrat</code> (DATE)
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Colonnes à ajouter — table <code style="color:#C8960C">classes</code></div>
+          <div class="step-desc">
+            <code>quota_seances</code> (INT, défaut 24) &nbsp;·&nbsp;
+            <code>frequence_semaine</code> (INT, défaut 2) &nbsp;·&nbsp;
+            <code>date_fin_contrat</code> (DATE)
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Exécution automatique via l'API Supabase</div>
+          <div class="step-desc">Cliquez le bouton ci-dessous. Les colonnes sont ajoutées uniquement si elles n'existent pas encore (ADD COLUMN IF NOT EXISTS — 100% sécurisé).</div>
+        </div>
+      </div>
+
+      <button class="btn" id="runBtn" onclick="runMigration()">
+        ⚡ Exécuter la migration maintenant
+      </button>
+
+      <div class="progress" id="progress">
+        <div class="progress-bar" id="bar" style="width:0%"></div>
+      </div>
+
+      <div class="log" id="log"></div>
+
+      <div id="resultTable" style="display:none"></div>
+
+      <div style="margin-top:22px;padding:12px 16px;background:#0D1B2A;border-radius:9px;border:1px solid #1E3050;font-size:.7rem;color:#3A5070;line-height:1.7">
+        🔒 Cette page utilise votre clé <strong style="color:#C8960C">service_role</strong> Supabase déjà configurée dans le dashboard.<br/>
+        Toutes les opérations sont effectuées localement — aucune donnée n'est envoyée à un serveur tiers.<br/>
+        <strong style="color:#5A7090">Fichier SQL complet :</strong> <code style="color:#4A90D9">migration_quota.sql</code> (dans le même dossier)
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+    const SUPABASE_URL          = 'https://fglzovvsyloprokmdadx.supabase.co'
+    const SUPABASE_SERVICE_ROLE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnbHpvdnZzeWxvcHJva21kYWR4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDk3OTE4MSwiZXhwIjoyMDkwNTU1MTgxfQ.dQ5HoVmT73f6Ft1R1SMpKqHp370TLneh7dALWw5tlXI'
+
+    const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE)
+
+    // SQL via l'API REST Supabase (endpoint /rest/v1/rpc ou endpoint SQL direct)
+    async function execSQL(sql, label) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/exec_sql`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_SERVICE_ROLE,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`,
+        },
+        body: JSON.stringify({ sql })
+      })
+      if (!res.ok) {
+        // Fallback : endpoint SQL direct (Supabase Management API)
+        const res2 = await fetch(`${SUPABASE_URL}/pg`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_SERVICE_ROLE,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`,
+          },
+          body: sql
+        })
+        if (!res2.ok) throw new Error(`HTTP ${res2.status}`)
+        return res2.json()
+      }
+      return res.json()
+    }
+
+    // Vérifier si une colonne existe
+    async function colExists(table, col) {
+      const { data } = await sb
+        .from('information_schema.columns')
+        .select('column_name')
+        .eq('table_name', table)
+        .eq('column_name', col)
+        .maybeSingle()
+      return !!data
+    }
+
+    // Ajouter une colonne via upsert dans pg_catalog (approche RPC)
+    async function addCol(table, col, type, defVal) {
+      // Vérifie d'abord si la colonne existe déjà
+      const exists = await colExists(table, col)
+      if (exists) return { status: 'exists', table, col }
+
+      // Tente l'ajout via fetch direct vers Supabase SQL
+      const sql = `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${col} ${type}${defVal !== undefined ? ' DEFAULT ' + defVal : ''};`
+
+      // Essai 1 : via rpc/exec_sql (si la fonction existe)
+      try {
+        await execSQL(sql, `${table}.${col}`)
+        return { status: 'added', table, col }
+      } catch (e1) {
+        // Essai 2 : via l'API management Supabase
+        try {
+          const projectRef = 'fglzovvsyloprokmdadx'
+          const r = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`,
+            },
+            body: JSON.stringify({ query: sql })
+          })
+          if (r.ok) return { status: 'added', table, col }
+          throw new Error('management API: ' + r.status)
+        } catch (e2) {
+          return { status: 'error', table, col, error: e2.message }
+        }
+      }
+    }
+
+    window.runMigration = async function() {
+      const btn = document.getElementById('runBtn')
+      const log = document.getElementById('log')
+      const bar = document.getElementById('bar')
+      const progress = document.getElementById('progress')
+      btn.disabled = true
+      log.style.display = 'block'
+      progress.style.display = 'block'
+      log.innerHTML = ''
+
+      const addLog = (msg, cls='inf') => {
+        log.innerHTML += `<div class="${cls}">${msg}</div>`
+        log.scrollTop = log.scrollHeight
+      }
+
+      const setBar = (pct) => bar.style.width = pct + '%'
+
+      addLog('⏳ Démarrage de la migration AGTM…', 'inf')
+      addLog('📡 Connexion à Supabase : fglzovvsyloprokmdadx', 'inf')
+
+      // Colonnes à ajouter
+      const cols = [
+        { table: 'etudiants', col: 'quota_seances',      type: 'INTEGER', def: 24 },
+        { table: 'etudiants', col: 'frequence_semaine',  type: 'INTEGER', def: 2 },
+        { table: 'etudiants', col: 'date_debut_contrat', type: 'DATE',    def: undefined },
+        { table: 'etudiants', col: 'date_fin_contrat',   type: 'DATE',    def: undefined },
+        { table: 'classes',   col: 'quota_seances',      type: 'INTEGER', def: 24 },
+        { table: 'classes',   col: 'frequence_semaine',  type: 'INTEGER', def: 2 },
+        { table: 'classes',   col: 'date_fin_contrat',   type: 'DATE',    def: undefined },
+      ]
+
+      const results = []
+      for (let i = 0; i < cols.length; i++) {
+        const c = cols[i]
+        setBar(Math.round((i / cols.length) * 100))
+        addLog(`  ➤ ALTER TABLE <strong style="color:#E8B84B">${c.table}</strong> ADD COLUMN IF NOT EXISTS <strong style="color:#4A90D9">${c.col}</strong> ${c.type}${c.def !== undefined ? ' DEFAULT '+c.def : ''}…`)
+        const r = await addCol(c.table, c.col, c.type, c.def)
+        results.push(r)
+        if (r.status === 'added')  addLog(`    ✅ Colonne <strong>${c.col}</strong> ajoutée avec succès`, 'ok')
+        else if (r.status === 'exists') addLog(`    ℹ️ Colonne <strong>${c.col}</strong> existe déjà — ignorée`, 'warn')
+        else addLog(`    ❌ Erreur : ${r.error}`, 'err')
+      }
+
+      setBar(100)
+
+      // Si toutes les opérations directes ont échoué (pas de fonction exec_sql),
+      // afficher les instructions manuelles
+      const allErrors = results.filter(r => r.status === 'error')
+      const allAdded = results.filter(r => r.status === 'added')
+      const allExist = results.filter(r => r.status === 'exists')
+
+      addLog('', 'inf')
+      addLog('═══════════════════════════════════════', 'inf')
+
+      if (allErrors.length === 0) {
+        addLog(`🎉 Migration terminée ! ${allAdded.length} colonne(s) ajoutée(s), ${allExist.length} déjà présente(s).`, 'ok')
+      } else {
+        addLog(`⚠️ ${allErrors.length} colonne(s) nécessitent une action manuelle.`, 'warn')
+        addLog('', 'inf')
+        addLog('📋 COPIEZ CE SQL DANS SUPABASE → SQL EDITOR → RUN :', 'warn')
+        addLog('', 'inf')
+        const manualSQL = allErrors.map(r => {
+          const c = cols.find(x => x.table === r.table && x.col === r.col)
+          return `ALTER TABLE ${c.table} ADD COLUMN IF NOT EXISTS ${c.col} ${c.type}${c.def !== undefined ? ' DEFAULT ' + c.def : ''};`
+        }).join('\n')
+        addLog(`<pre style="background:#0A1520;padding:12px;border-radius:6px;border:1px solid #C8960C;color:#4AE090;white-space:pre-wrap;font-size:.72rem;margin-top:6px">${manualSQL}</pre>`, 'inf')
+      }
+
+      // Table récapitulatif
+      const tableHTML = `
+        <table style="margin-top:16px">
+          <thead><tr><th>Table</th><th>Colonne</th><th>Type</th><th>Résultat</th></tr></thead>
+          <tbody>
+            ${results.map((r, i) => {
+              const c = cols[i]
+              const badge = r.status === 'added' ? '<span style="color:#4AE090;font-weight:700">✅ Ajoutée</span>'
+                          : r.status === 'exists' ? '<span style="color:#E8B84B;font-weight:700">ℹ️ Existante</span>'
+                          : '<span style="color:#E04A4A;font-weight:700">❌ Erreur</span>'
+              return `<tr>
+                <td style="color:#E8B84B">${r.table}</td>
+                <td style="font-family:monospace;color:#4A90D9">${r.col}</td>
+                <td style="color:#5A7090">${c.type}${c.def !== undefined ? ' = '+c.def : ''}</td>
+                <td>${badge}</td>
+              </tr>`
+            }).join('')}
+          </tbody>
+        </table>`
+
+      document.getElementById('resultTable').innerHTML = tableHTML
+      document.getElementById('resultTable').style.display = 'block'
+
+      btn.disabled = false
+      btn.textContent = '🔄 Relancer la vérification'
+    }
+  </script>
+</body>
+</html>

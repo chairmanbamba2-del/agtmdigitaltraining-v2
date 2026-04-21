@@ -1,0 +1,44 @@
+# Fichiers de migration SQL (sensibles — ne pas publier)
+*.sql
+
+# Dossier certificats (fichiers locaux générés)
+certificat/
+
+# Base de données locale
+*.db
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dossiers d'éditeurs
+.vscode/
+.idea/
+
+# Claude Code (config locale)
+.claude/
+
+# Node.js (outils de migration locaux)
+node_modules/
+package-lock.json
+package.json
+
+# Scripts de migration locaux
+agtm_pg_migrate.js
+executer_migration.ps1
+
+# Supabase temp
+supabase/.temp/
+
+# Logs
+*.log
+
+# Local Netlify folder
+.netlify
+
+# Fichiers CSS temporaires (extraits du design system)
+base.css
+dashboard-redesign-styles.css
+temp-design-system.css
+.aider*

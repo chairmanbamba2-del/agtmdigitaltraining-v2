@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AGTM — Pointage de Séance</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px}
+    body{
+      background:linear-gradient(150deg,#09111E 0%,#160E04 40%,#0B1A2E 70%,#160E04 100%);
+      background-attachment:fixed;font-family:'Segoe UI',system-ui,sans-serif;
+      min-height:100vh;color:#E2D8C0
+    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+    .fade-in{animation:fadeIn .3s ease}
+    .pulse{animation:pulse 1.2s infinite}
+    input,select{outline:none;width:100%;padding:10px 14px;border-radius:9px;
+      background:linear-gradient(135deg,#0B1828,#1C1408);border:1px solid #3A3A28;
+      color:#E2D8C0;font-size:.9rem;font-family:inherit}
+    input:focus,select:focus{border-color:#C8960C;box-shadow:0 0 0 2px rgba(200,150,12,.2)}
+    label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;
+      color:#8AAAC0;margin-bottom:6px;font-weight:700}
+    .field{margin-bottom:12px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .btn{padding:10px 22px;border-radius:9px;font-weight:700;font-size:.87rem;
+      cursor:pointer;border:none;font-family:inherit;transition:opacity .15s}
+    .btn:hover{opacity:.85}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-blue{background:linear-gradient(135deg,rgba(28,50,88,.9),rgba(30,22,5,.9));
+      border:1px solid #4A90D9;color:#6AABF0}
+    .btn-green{background:linear-gradient(135deg,rgba(14,34,24,.9),rgba(10,24,8,.9));
+      border:1px solid #4AE090;color:#4AE090}
+    .btn-gold{background:linear-gradient(135deg,#C8960C,#E8B84B);color:#0D1B2A;
+      box-shadow:0 3px 14px rgba(200,150,12,.35)}
+    .block{background:linear-gradient(135deg,#152540 0%,#241C08 100%);
+      border:1px solid rgba(200,150,12,.18);border-radius:13px;overflow:hidden;margin-bottom:20px}
+    .block-head{background:linear-gradient(90deg,#1C3258 0%,#2C2208 100%);
+      padding:13px 20px;border-bottom:1px solid rgba(200,150,12,.2);
+      font-size:.88rem;font-weight:800;color:#E8B84B}
+    .block-body{padding:20px}
+    .result-ok{padding:10px 14px;background:#1A3A1A;border:1px solid #4AE090;
+      border-radius:8px;display:flex;align-items:center;gap:12px}
+    .result-err{padding:10px 14px;background:#2A1A1A;border:1px solid #E04A4A;
+      border-radius:8px;color:#E04A4A;font-size:.82rem;font-weight:600}
+    .result-warn{padding:10px 14px;background:#2A2010;border:1px solid #E8B84B;
+      border-radius:8px;color:#E8B84B;font-size:.82rem;font-weight:600}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:#09111E}
+    ::-webkit-scrollbar-thumb{background:linear-gradient(#2A3F58,#3A2A10);border-radius:3px}
+  </style>
+</head>
+<body>
+
+<script>
+  const SUPABASE_URL  = 'https://fglzovvsyloprokmdadx.supabase.co'
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnbHpvdnZzeWxvcHJva21kYWR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NzkxODEsImV4cCI6MjA5MDU1NTE4MX0.QffMgmgl0Ti-ZCuQ0y_eWbZYLd5ktq-1Y6nh1RfKZww'
+</script>
+
+<!-- LOADING -->
+<div id="loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div style="font-size:2.8rem;font-weight:900;color:#E8B84B;letter-spacing:-1px">AGTM</div>
+  <div style="color:#6AABF0;font-size:.92rem">Chargement de la feuille de pointage…</div>
+  <div class="pulse" style="width:48px;height:3px;background:#C8960C;border-radius:2px"></div>
+</div>
+
+<!-- ERROR -->
+<div id="errBlock" style="display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:24px">
+  <div style="font-size:2rem;font-weight:900;color:#E8B84B">AGTM</div>
+  <div id="errMsg" style="color:#E04A4A;font-size:1rem;font-weight:600;text-align:center;max-width:440px"></div>
+  <div style="color:#6A8AAA;font-size:.82rem;text-align:center">Vérifiez le lien ou contactez l'administration AGTM.</div>
+</div>
+
+<!-- MAIN FORM -->
+<div id="mainForm" style="display:none;max-width:700px;margin:0 auto;padding:24px 16px" class="fade-in">
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:26px;padding-bottom:20px;border-bottom:2px solid rgba(200,150,12,.5)">
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:10px">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,#C8960C,#E8B84B);border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.95rem;color:#0D1B2A;flex-shrink:0;box-shadow:0 2px 10px rgba(200,150,12,.4)">AGTM</div>
+      <div style="text-align:left">
+        <div style="color:#E8B84B;font-weight:900;font-size:1.05rem;line-height:1.1">AGTM Digital Academy</div>
+        <div style="color:#6AABF0;font-size:.68rem;letter-spacing:.04em">Abidjan, Côte d'Ivoire</div>
+      </div>
+    </div>
+    <div style="display:inline-block;background:linear-gradient(90deg,rgba(28,50,88,.8),rgba(44,34,8,.8));color:#6AABF0;font-weight:800;font-size:.82rem;padding:6px 20px;border-radius:14px;letter-spacing:.04em;border:1px solid rgba(74,144,217,.35)">
+      📋 FEUILLE DE POINTAGE — DÉBUT DE SÉANCE
+    </div>
+  </div>
+
+  <!-- Infos séance -->
+  <div id="seanceInfo" style="background:linear-gradient(135deg,#152540 0%,#241C08 100%);border:1px solid rgba(200,150,12,.4);border-radius:13px;padding:18px 22px;margin-bottom:24px"></div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECTION ENSEIGNANT
+  ═══════════════════════════════════════════════════════ -->
+  <div class="block">
+    <div class="block-head">👨‍🏫 Vérification de l'Enseignant</div>
+    <div class="block-body">
+      <div style="font-size:.75rem;color:#7A9AB0;margin-bottom:14px;background:rgba(74,144,217,.06);border:1px solid rgba(74,144,217,.2);border-radius:8px;padding:9px 12px">
+        ℹ️ Saisissez votre prénom, nom, numéro de matricule et la classe que vous enseignez. Ces informations seront vérifiées contre les données enregistrées dans le système.
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>Prénom *</label>
+          <input id="fmtPrenom" type="text" placeholder="Ex : Kouamé" autocomplete="off"
+            onkeydown="if(event.key==='Enter')document.getElementById('fmtNom').focus()"/>
+        </div>
+        <div class="field">
+          <label>Nom *</label>
+          <input id="fmtNom" type="text" placeholder="Ex : DIALLO" autocomplete="off"
+            onkeydown="if(event.key==='Enter')document.getElementById('fmtMatricule').focus()"/>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>N° Matricule *</label>
+          <input id="fmtMatricule" type="text" placeholder="Ex : MAT-2026-001" autocomplete="off"
+            onkeydown="if(event.key==='Enter')document.getElementById('fmtClasse').focus()"/>
+        </div>
+        <div class="field">
+          <label>Classe enseignée *</label>
+          <select id="fmtClasse">
+            <option value="">— Sélectionner la classe —</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-blue" onclick="_verifyFormateur()" id="btnVerifyFmt" style="margin-top:4px">
+        🔍 Vérifier et valider
+      </button>
+
+      <div id="fmtResult" style="display:none;margin-top:14px"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECTION ÉTUDIANTS
+  ═══════════════════════════════════════════════════════ -->
+  <div class="block">
+    <div class="block-head">👨‍🎓 Pointage des Étudiants</div>
+    <div class="block-body">
+      <div style="font-size:.75rem;color:#7A9AB0;margin-bottom:14px;background:rgba(74,224,144,.06);border:1px solid rgba(74,224,144,.2);border-radius:8px;padding:9px 12px">
+        ℹ️ Liste automatique des étudiants inscrits à cette classe. Cochez les étudiants présents. Les informations sont pré-chargées depuis la base de données.
+      </div>
+
+      <!-- Filtre de recherche -->
+      <div class="field" id="filterSection">
+        <label>🔍 Filtrer les étudiants</label>
+        <input id="etudFilter" type="text" placeholder="Rechercher par nom, prénom ou numéro de dossier" autocomplete="off"
+          oninput="_filterEtudiants()" style="width:100%"/>
+      </div>
+
+      <!-- Liste des étudiants avec checkboxes (pour séances de groupe) -->
+      <div id="etudCheckboxList" style="max-height:300px;overflow-y:auto;background:#0D1B2A;border:1px solid #1E3050;border-radius:8px;padding:8px;margin-bottom:16px">
+        <div style="padding:20px;text-align:center;color:#5A7090;font-size:.82rem">
+          Chargement des étudiants...
+        </div>
+      </div>
+
+      <!-- Section manuelle (pour séances individuelles) -->
+      <div id="etudManualSection" style="display:none">
+        <div style="font-size:.75rem;color:#7A9AB0;margin-bottom:14px;background:rgba(74,144,217,.06);border:1px solid rgba(74,144,217,.2);border-radius:8px;padding:9px 12px">
+          ℹ️ Saisie manuelle pour séance individuelle. Renseignez prénom, nom et numéro de dossier.
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Prénom de l'étudiant *</label>
+            <input id="etudPrenom" type="text" placeholder="Ex : Awa" autocomplete="off"
+              onkeydown="if(event.key==='Enter')document.getElementById('etudNom').focus()"/>
+          </div>
+          <div class="field">
+            <label>Nom de l'étudiant *</label>
+            <input id="etudNom" type="text" placeholder="Ex : KOUASSI" autocomplete="off"
+              onkeydown="if(event.key==='Enter')document.getElementById('etudDossier').focus()"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>N° Dossier *</label>
+          <div style="display:flex;gap:10px">
+            <input id="etudDossier" type="text" placeholder="Ex : AGTM-2026-001" autocomplete="off"
+              onkeydown="if(event.key==='Enter')_verifyEtudiant()" style="width:auto;flex:1"/>
+            <button class="btn btn-green" onclick="_verifyEtudiant()" id="btnVerifyEtud" style="white-space:nowrap;flex-shrink:0">
+              ✅ Pointer
+            </button>
+          </div>
+        </div>
+        <div id="etudResult" style="font-size:.8rem;color:#7A9AB0;margin-bottom:10px;min-height:18px"></div>
+      </div>
+
+      <!-- Étudiants déjà pointés (liste de confirmation) -->
+      <div id="etudList" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div style="background:linear-gradient(135deg,#0E2A1A 0%,#1A1A08 100%);border:1px solid rgba(74,224,144,.35);border-radius:13px;padding:18px 22px;margin-bottom:24px">
+    <div style="font-size:.82rem;color:#8AAAC0;margin-bottom:14px;line-height:1.6">
+      Cliquez sur <strong style="color:#4AE090">Enregistrer le Pointage</strong> une fois que l'enseignant et les étudiants présents ont été vérifiés.
+      La séance sera marquée <strong style="color:#4AE090">Réalisée</strong> automatiquement.
+    </div>
+    <button class="btn btn-gold" onclick="_submitPointage()" id="btnSubmit" style="width:100%;padding:14px;font-size:1rem">
+      💾 Enregistrer le Pointage de Séance
+    </button>
+  </div>
+
+  <div style="text-align:center;font-size:.63rem;color:#3A5070;padding-bottom:22px">
+    AGTM Digital Academy · Propriété de <strong style="color:#C8960C">ISSA BAMBA</strong> · © 2026 · Tous droits réservés
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div id="successBlock" style="display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;text-align:center">
+  <div style="font-size:3.5rem">✅</div>
+  <div style="font-size:1.4rem;font-weight:900;color:#4AE090">Pointage enregistré !</div>
+  <div id="successMsg" style="font-size:.88rem;color:#90A4AE;max-width:420px;line-height:1.6"></div>
+  <div style="margin-top:8px;font-size:.72rem;color:#2A4060">AGTM Digital Academy · © 2026</div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON)
+
+  // ── Helpers ──────────────────────────────────────────────────────────
+  const $ = id => document.getElementById(id)
+
+  function toast(msg, type='ok') {
+    const t = document.createElement('div')
+    t.textContent = msg
+    t.style.cssText = `position:fixed;bottom:22px;right:22px;z-index:9999;padding:11px 20px;border-radius:10px;font-size:.82rem;font-weight:600;color:#fff;background:${type==='err'?'#8B1A1A':'#1A4A2A'};border:1px solid ${type==='err'?'#E04A4A':'#4AE090'};box-shadow:0 4px 18px rgba(0,0,0,.4);max-width:320px`
+    document.body.appendChild(t)
+    setTimeout(() => t.remove(), 3800)
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—'
+    return new Date(d).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'})
+  }
+
+  // Normalise une chaîne pour comparaison souple (minuscules, sans accents, trimée)
+  function norm(s) {
+    return (s||'').trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  }
+
+  // ── State ────────────────────────────────────────────────────────────
+  let seanceId       = null
+  let seanceData     = null
+  let classeData     = null   // classe liée à la séance
+  let allClasses     = []     // classes de l'enseignant (si plusieurs)
+   let verifiedFormateur  = null
+   let verifiedEtudiants  = []
+   let inscritsClasse     = []   // étudiants inscrits à la classe de la séance
+
+  // ── Init ─────────────────────────────────────────────────────────────
+  async function init() {
+    // Récupérer l'ID de séance depuis l'URL
+    seanceId = new URLSearchParams(window.location.search).get('seance_id')
+      || new URLSearchParams(window.location.search).get('pointage')
+    if (!seanceId) {
+      const h = window.location.hash.replace('#','')
+      if (h && !isNaN(Number(h))) seanceId = h
+    }
+    if (!seanceId) {
+      const hp = new URLSearchParams(window.location.hash.replace('#',''))
+      seanceId = hp.get('seance_id') || hp.get('pointage')
+    }
+    if (!seanceId) {
+      const lsId = localStorage.getItem('agtm_seance_id')
+      if (lsId && !isNaN(Number(lsId)) && (Date.now() - Number(localStorage.getItem('agtm_seance_ts')||0)) < 600000) seanceId = lsId
+    }
+
+    if (!seanceId || isNaN(Number(seanceId))) {
+      $('loading').style.display = 'none'
+      $('errBlock').style.display = 'flex'
+      $('errMsg').innerHTML = `Lien invalide : aucun identifiant de séance fourni.<br>
+        <span style="font-size:.72rem;color:#7A9AB0;display:block;margin-top:8px">URL : ${location.href}</span>`
+      return
+    }
+
+    // Charger la séance
+    const { data: seance, error } = await sb.from('seances').select('*').eq('id', seanceId).maybeSingle()
+    if (error || !seance) {
+      $('loading').style.display = 'none'
+      $('errBlock').style.display = 'flex'
+      $('errMsg').textContent = `Séance introuvable (ID: ${seanceId}). Le lien est peut-être expiré ou incorrect.`
+      return
+    }
+    seanceData = seance
+
+    // Charger la classe liée à la séance
+    if (seance.classe_id) {
+      const { data: cl } = await sb.from('classes').select('id,nom,niveau,formateur_nom').eq('id', seance.classe_id).maybeSingle()
+      classeData = cl
+
+      // Charger les étudiants inscrits à cette classe
+      const { data: inscrits } = await sb.from('inscriptions_classes')
+        .select('etudiant_id, etudiants(id,nom,prenom,niveau,numero_dossier,statut,formations)')
+        .eq('classe_id', seance.classe_id)
+        .order('etudiants(nom)')
+      inscritsClasse = (inscrits || []).map(i => i.etudiants).filter(Boolean)
+      
+      // Afficher la liste des étudiants avec checkboxes
+      _renderEtudCheckboxes()
+    } else {
+      // Séance sans classe (individuelle) → basculer vers saisie manuelle
+      $('filterSection').style.display = 'none'
+      $('etudCheckboxList').style.display = 'none'
+      $('etudManualSection').style.display = 'block'
+    }
+
+    // Charger toutes les classes pour le select
+    const { data: classes } = await sb.from('classes').select('id,nom,niveau').order('nom')
+    allClasses = classes || []
+
+    // Remplir le select des classes
+    const sel = $('fmtClasse')
+    allClasses.forEach(cl => {
+      const opt = document.createElement('option')
+      opt.value = cl.id
+      opt.textContent = cl.nom + (cl.niveau ? ' — ' + cl.niveau : '')
+      // Pré-sélectionner la classe de la séance
+      if (classeData && cl.id === classeData.id) opt.selected = true
+      sel.appendChild(opt)
+    })
+
+    // Afficher les infos de la séance
+    $('seanceInfo').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#7A9AB0;margin-bottom:4px;font-weight:600">Date</div>
+          <div style="font-size:.92rem;font-weight:700;color:#E8B84B">${fmtDate(seance.date_seance)}</div>
+        </div>
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#7A9AB0;margin-bottom:4px;font-weight:600">Horaire</div>
+          <div style="font-size:.9rem;font-weight:700;color:#6AABF0">${seance.heure_debut||'—'}${seance.heure_fin?' – '+seance.heure_fin:''}</div>
+        </div>
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#7A9AB0;margin-bottom:4px;font-weight:600">Sujet / Thème</div>
+          <div style="font-size:.9rem;font-weight:700;color:#E2D8C0">${seance.sujet||seance.titre||'—'}</div>
+        </div>
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#7A9AB0;margin-bottom:4px;font-weight:600">Classe</div>
+          <div style="font-size:.85rem;font-weight:700;color:#E8B84B">${classeData?.nom||seance.format||'—'}${classeData?.niveau?' · '+classeData.niveau:''}</div>
+        </div>
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#7A9AB0;margin-bottom:4px;font-weight:600">Programme</div>
+          <div style="font-size:.85rem;font-weight:600;color:#8AAAC0">${seance.programme||'Général'}</div>
+        </div>
+        <div>
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#7A9AB0;margin-bottom:4px;font-weight:600">Statut</div>
+          <div style="font-size:.82rem;font-weight:700;color:${seance.statut==='Réalisée'?'#4AE090':'#E8B84B'}">${seance.statut||'Planifiée'}</div>
+        </div>
+      </div>
+      ${seance.lien_meet ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(200,150,12,.2);background:rgba(26,115,232,.08);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#6AABF0;font-weight:700;margin-bottom:4px">🔗 Lien Google Meet</div><a href="${seance.lien_meet}" target="_blank" style="font-size:.88rem;color:#4A90D9;font-weight:700;word-break:break-all">${seance.lien_meet}</a></div><a href="${seance.lien_meet}" target="_blank" style="padding:8px 16px;background:#1a73e8;color:#fff;border-radius:8px;font-size:.8rem;font-weight:700;text-decoration:none;white-space:nowrap">Rejoindre</a></div>` : ''}
+    `
+
+    $('loading').style.display = 'none'
+    $('mainForm').style.display = 'block'
+  }
+
+  // ── Vérification Enseignant ───────────────────────────────────────────
+  window._verifyFormateur = async function() {
+    const prenom   = $('fmtPrenom').value.trim()
+    const nom      = $('fmtNom').value.trim()
+    const mat      = $('fmtMatricule').value.trim()
+    const classeId = Number($('fmtClasse').value)
+
+    if (!prenom || !nom || !mat) {
+      toast('Remplissez prénom, nom et matricule.', 'err'); return
+    }
+    if (!classeId) {
+      toast('Sélectionnez la classe enseignée.', 'err'); return
+    }
+
+    $('btnVerifyFmt').disabled = true
+    $('btnVerifyFmt').textContent = '⏳ Vérification…'
+    $('fmtResult').style.display = 'none'
+
+    // Chercher par matricule
+    const { data: pers, error } = await sb.from('personnel')
+      .select('id,nom,prenom,cin,matricule,poste,statut')
+      .ilike('matricule', mat)
+      .maybeSingle()
+
+    $('btnVerifyFmt').disabled = false
+    $('btnVerifyFmt').textContent = '🔍 Vérifier et valider'
+
+    if (error || !pers) {
+      $('fmtResult').style.display = 'block'
+      $('fmtResult').innerHTML = `<div class="result-err">❌ Matricule <strong>${mat}</strong> introuvable dans le système. Vérifiez votre numéro de matricule.</div>`
+      verifiedFormateur = null; return
+    }
+
+    // Vérifier que le nom ET le prénom correspondent (comparaison normalisée)
+    const nomOk    = norm(pers.nom)    === norm(nom)
+    const prenomOk = norm(pers.prenom) === norm(prenom)
+
+    if (!nomOk || !prenomOk) {
+      $('fmtResult').style.display = 'block'
+      $('fmtResult').innerHTML = `<div class="result-err">
+        ❌ Les informations ne correspondent pas au matricule <strong>${mat}</strong>.<br>
+        <span style="font-size:.75rem;color:#C09070;margin-top:4px;display:block">Vérifiez votre prénom et nom tels qu'enregistrés dans le système.</span>
+      </div>`
+      verifiedFormateur = null; return
+    }
+
+    if (pers.statut && pers.statut !== 'Actif') {
+      $('fmtResult').style.display = 'block'
+      $('fmtResult').innerHTML = `<div class="result-warn">⚠️ Compte inactif — <strong>${pers.prenom} ${pers.nom}</strong> a le statut <strong>${pers.statut}</strong>. Contactez l'administration.</div>`
+      verifiedFormateur = null; return
+    }
+
+    // Vérifier que la classe sélectionnée correspond à la séance
+    if (seanceData?.classe_id && classeId !== seanceData.classe_id) {
+      const selClass = allClasses.find(c => c.id === classeId)
+      $('fmtResult').style.display = 'block'
+      $('fmtResult').innerHTML = `<div class="result-err">
+        ❌ La classe sélectionnée (<strong>${selClass?.nom||classeId}</strong>) ne correspond pas à la séance en cours (<strong>${classeData?.nom||seanceData.classe_id}</strong>).
+      </div>`
+      verifiedFormateur = null; return
+    }
+
+    verifiedFormateur = { ...pers, classeId }
+    $('fmtResult').style.display = 'block'
+    $('fmtResult').innerHTML = `<div class="result-ok">
+      <div style="font-size:1.4rem">✅</div>
+      <div>
+        <div style="font-size:.92rem;font-weight:800;color:#4AE090">${pers.prenom} ${pers.nom}</div>
+        <div style="font-size:.72rem;color:#90A4AE">
+          ${pers.poste||'Enseignant'} · Matricule : <strong style="color:#E8B84B">${pers.matricule||mat}</strong>
+          · Classe : <strong style="color:#4A90D9">${classeData?.nom||allClasses.find(c=>c.id===classeId)?.nom||'—'}</strong>
+          · Statut : <strong style="color:#4AE090">Actif</strong>
+        </div>
+      </div>
+    </div>`
+    toast('✅ Enseignant vérifié : ' + pers.prenom + ' ' + pers.nom)
+  }
+
+  // ── Vérification Étudiant ─────────────────────────────────────────────
+  window._verifyEtudiant = async function() {
+    const prenom  = $('etudPrenom').value.trim()
+    const nom     = $('etudNom').value.trim()
+    const dossier = $('etudDossier').value.trim()
+
+    if (!prenom || !nom || !dossier) {
+      toast('Remplissez prénom, nom et N° dossier.', 'err'); return
+    }
+
+    // Vérifier si déjà pointé
+    if (verifiedEtudiants.find(e => norm(e.numero_dossier) === norm(dossier))) {
+      toast('Cet étudiant est déjà dans la liste !', 'err')
+      $('etudDossier').value = ''; return
+    }
+
+    $('btnVerifyEtud').disabled = true
+    $('btnVerifyEtud').textContent = '⏳…'
+    $('etudResult').textContent = 'Vérification en cours…'
+    $('etudResult').style.color = '#4A90D9'
+
+    const { data: etud, error } = await sb.from('etudiants')
+      .select('id,nom,prenom,niveau,numero_dossier,statut,formations')
+      .ilike('numero_dossier', dossier)
+      .maybeSingle()
+
+    $('btnVerifyEtud').disabled = false
+    $('btnVerifyEtud').textContent = '✅ Pointer'
+
+    if (error || !etud) {
+      $('etudResult').innerHTML = `❌ N° dossier <strong style="color:#E04A4A">${dossier}</strong> introuvable dans le système.`
+      $('etudResult').style.color = '#E04A4A'
+      return
+    }
+
+    // Vérifier que nom + prénom correspondent au dossier
+    const nomOk    = norm(etud.nom)    === norm(nom)
+    const prenomOk = norm(etud.prenom) === norm(prenom)
+
+    if (!nomOk || !prenomOk) {
+      $('etudResult').innerHTML = `❌ Le prénom/nom saisi ne correspond pas au dossier <strong style="color:#E04A4A">${dossier}</strong>. Vérifiez vos informations.`
+      $('etudResult').style.color = '#E04A4A'
+      return
+    }
+
+    if (etud.statut && etud.statut !== 'Actif') {
+      $('etudResult').innerHTML = `⚠️ ${etud.prenom} ${etud.nom} — statut : <strong>${etud.statut}</strong>. Non autorisé.`
+      $('etudResult').style.color = '#E8B84B'
+      return
+    }
+
+    verifiedEtudiants.push(etud)
+    $('etudPrenom').value = ''
+    $('etudNom').value = ''
+    $('etudDossier').value = ''
+    $('etudResult').innerHTML = `✅ <strong style="color:#4AE090">${etud.prenom} ${etud.nom}</strong> ajouté(e) à la liste.`
+    $('etudResult').style.color = '#4AE090'
+    _renderEtudList()
+    toast(`✅ ${etud.prenom} ${etud.nom} — Niveau ${etud.niveau||'?'}`)
+    $('etudPrenom').focus()
+  }
+
+  // ── Liste étudiants ───────────────────────────────────────────────────
+  function _renderEtudList() {
+    if (!verifiedEtudiants.length) {
+      $('etudList').innerHTML = '<div style="font-size:.78rem;color:#5A7090;font-style:italic">Aucun étudiant pointé pour l\'instant.</div>'
+      return
+    }
+    $('etudList').innerHTML = `
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:#8AAAC0;margin-bottom:10px;font-weight:700">
+        ${verifiedEtudiants.length} étudiant(s) vérifié(s) et présent(s)
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:linear-gradient(90deg,#0D1E34 0%,#180F04 100%)">
+          <th style="padding:8px 10px;font-size:.7rem;color:#8AAAC0;text-align:left;font-weight:700">N° Dossier</th>
+          <th style="padding:8px 10px;font-size:.7rem;color:#8AAAC0;text-align:left;font-weight:700">Nom & Prénom</th>
+          <th style="padding:8px 10px;font-size:.7rem;color:#8AAAC0;text-align:center;font-weight:700">Niveau</th>
+          <th style="padding:8px 10px;font-size:.7rem;color:#8AAAC0;text-align:left;font-weight:700">Programme</th>
+          <th style="padding:8px 10px;font-size:.7rem;color:#8AAAC0"></th>
+        </tr></thead>
+        <tbody>
+          ${verifiedEtudiants.map((e,i) => `
+            <tr style="border-top:1px solid rgba(200,150,12,.12)">
+              <td style="padding:8px 10px;font-size:.8rem;color:#E8B84B;font-weight:700">${e.numero_dossier||'—'}</td>
+              <td style="padding:8px 10px;font-size:.85rem;color:#E2D8C0;font-weight:600">${e.prenom} ${e.nom}</td>
+              <td style="padding:8px 10px;text-align:center">
+                <span style="padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:700;background:rgba(28,50,88,.7);border:1px solid #4A90D9;color:#6AABF0">${e.niveau||'—'}</span>
+              </td>
+              <td style="padding:8px 10px;font-size:.75rem;color:#8AAAC0">${e.formations||'Général'}</td>
+              <td style="padding:8px 10px">
+                <button onclick="_removeEtud(${i})" style="padding:3px 8px;border-radius:5px;font-size:.68rem;cursor:pointer;background:rgba(42,10,10,.8);border:1px solid #E04A4A;color:#E04A4A">✕</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`
+  }
+
+  window._removeEtud = function(idx) {
+    verifiedEtudiants.splice(idx, 1)
+    _renderEtudList()
+  }
+
+  // ── Liste des étudiants avec checkboxes ──────────────────────────────
+  function _renderEtudCheckboxes(filter = '') {
+    const container = $('etudCheckboxList')
+    if (!container) return
+
+    if (!inscritsClasse.length) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;color:#5A7090;font-size:.82rem">Aucun étudiant inscrit à cette classe.</div>'
+      return
+    }
+
+    const filterNorm = norm(filter)
+    const filtered = inscritsClasse.filter(e => 
+      !filterNorm || 
+      norm(e.nom).includes(filterNorm) || 
+      norm(e.prenom).includes(filterNorm) || 
+      norm(e.numero_dossier || '').includes(filterNorm)
+    )
+
+    if (!filtered.length) {
+      container.innerHTML = `<div style="padding:20px;text-align:center;color:#5A7090;font-size:.82rem">Aucun étudiant ne correspond au filtre "${filter}".</div>`
+      return
+    }
+
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${filtered.map(e => {
+          const isSelected = verifiedEtudiants.some(v => v.id === e.id)
+          return `
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;background:${isSelected ? 'rgba(74,224,144,.08)' : '#0D1B2A'};border:1.5px solid ${isSelected ? '#4AE090' : '#1E3050'};transition:all .2s">
+            <input type="checkbox" ${isSelected ? 'checked' : ''} 
+              onchange="_toggleEtudiant(${e.id}, ${JSON.stringify(e.prenom)}, ${JSON.stringify(e.nom)}, ${JSON.stringify(e.numero_dossier)}, ${JSON.stringify(e.niveau)}, this.checked)"
+              style="width:16px;height:16px;accent-color:#4AE090;flex-shrink:0;cursor:pointer"/>
+            <div style="flex:1">
+              <div style="font-weight:700;color:${isSelected ? '#4AE090' : '#E2D8C0'};font-size:.85rem">${e.prenom} ${e.nom}</div>
+              <div style="display:flex;gap:12px;font-size:.72rem;color:#5A7090;margin-top:2px">
+                <span>📁 ${e.numero_dossier || '—'}</span>
+                <span>🎓 ${e.niveau || '—'}</span>
+                ${e.formations ? `<span>📚 ${e.formations}</span>` : ''}
+              </div>
+            </div>
+            ${isSelected ? '<span style="font-size:.75rem;color:#4AE090;font-weight:700">✅ Présent(e)</span>' : ''}
+          </label>`
+        }).join('')}
+      </div>`
+  }
+
+  window._toggleEtudiant = function(id, prenom, nom, numero_dossier, niveau, checked) {
+    if (checked) {
+      // Ajouter à la liste des vérifiés
+      if (!verifiedEtudiants.some(e => e.id === id)) {
+        verifiedEtudiants.push({ id, prenom, nom, numero_dossier, niveau })
+        toast(`✅ ${prenom} ${nom} ajouté(e)`)
+      }
+    } else {
+      // Retirer
+      const idx = verifiedEtudiants.findIndex(e => e.id === id)
+      if (idx !== -1) {
+        verifiedEtudiants.splice(idx, 1)
+        toast(`❌ ${prenom} ${nom} retiré(e)`)
+      }
+    }
+    _renderEtudList()
+    // Re-render les checkboxes pour mettre à jour le style (si la section est visible)
+    const checkboxList = $('etudCheckboxList')
+    if (checkboxList && checkboxList.style.display !== 'none') {
+      _renderEtudCheckboxes($('etudFilter')?.value || '')
+    }
+  }
+
+  window._filterEtudiants = function() {
+    const filter = $('etudFilter')?.value || ''
+    _renderEtudCheckboxes(filter)
+  }
+
+
+  // ── Enregistrement ────────────────────────────────────────────────────
+  window._submitPointage = async function() {
+    if (!verifiedFormateur) {
+      toast('⚠️ L\'enseignant doit être vérifié avant l\'enregistrement.', 'err'); return
+    }
+    if (!verifiedEtudiants.length) {
+      toast('⚠️ Ajoutez au moins un étudiant présent.', 'err'); return
+    }
+    if (!confirm(`Confirmer le pointage ?\n• Enseignant : ${verifiedFormateur.prenom} ${verifiedFormateur.nom}\n• ${verifiedEtudiants.length} étudiant(s) présent(s)\n• La séance sera marquée Réalisée.`)) return
+
+    $('btnSubmit').disabled = true
+    $('btnSubmit').textContent = '⏳ Enregistrement…'
+
+    // 1. Mettre à jour la séance → Réalisée
+    const { error: seanceErr } = await sb.from('seances').update({
+      statut: 'Réalisée',
+      enseignant: `${verifiedFormateur.prenom} ${verifiedFormateur.nom}`,
+    }).eq('id', seanceId)
+
+    if (seanceErr) {
+      toast('Erreur mise à jour séance : ' + seanceErr.message, 'err')
+      $('btnSubmit').disabled = false
+      $('btnSubmit').textContent = '💾 Enregistrer le Pointage de Séance'
+      return
+    }
+
+    // 2. Insérer les présences
+    const presences = verifiedEtudiants.map(e => ({
+      seance_id: Number(seanceId),
+      etudiant_id: e.id,
+      present: 1,
+      notes: `Pointage — ${new Date().toLocaleString('fr-FR')}`,
+    }))
+    const { error: presErr } = await sb.from('presences').upsert(presences, { onConflict: 'seance_id,etudiant_id' })
+
+    if (presErr) {
+      toast('Erreur présences : ' + presErr.message, 'err')
+      $('btnSubmit').disabled = false
+      $('btnSubmit').textContent = '💾 Enregistrer le Pointage de Séance'
+      return
+    }
+
+    $('mainForm').style.display = 'none'
+    $('successBlock').style.display = 'flex'
+    $('successMsg').innerHTML = `
+      Séance du <strong style="color:#E8B84B">${fmtDate(seanceData?.date_seance)}</strong> enregistrée comme <strong style="color:#4AE090">Réalisée</strong>.<br/>
+      <strong style="color:#4A90D9">${verifiedEtudiants.length} étudiant(s)</strong> marqué(s) présent(s).<br/><br/>
+      <span style="color:#5A7090">Enseignant : ${verifiedFormateur.prenom} ${verifiedFormateur.nom}</span>
+    `
+  }
+
+  init()
+</script>
+
+</body>
+</html>

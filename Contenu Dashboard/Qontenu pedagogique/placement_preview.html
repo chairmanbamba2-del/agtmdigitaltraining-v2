@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGTM — Test de Placement (Preview)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  h1 { color: #38bdf8; font-size: 2em; margin-bottom: 10px; border-bottom: 2px solid #1e3a5f; padding-bottom: 10px; }
+  h2 { color: #22d3ee; font-size: 1.5em; margin: 30px 0 15px; }
+  h3 { color: #a78bfa; font-size: 1.2em; margin: 20px 0 10px; }
+  .stats-bar { display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
+  .stat-card { background: #1e293b; border-radius: 12px; padding: 15px 20px; min-width: 120px; text-align: center; border: 1px solid #334155; }
+  .stat-card .number { font-size: 2em; font-weight: bold; color: #22d3ee; }
+  .stat-card .label { font-size: 0.85em; color: #94a3b8; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 600; margin-right: 5px; }
+  .badge-a1 { background: #166534; color: #86efac; }
+  .badge-a2 { background: #3f6212; color: #bef264; }
+  .badge-b1 { background: #92400e; color: #fcd34d; }
+  .badge-b2 { background: #9a3412; color: #fdba74; }
+  .badge-c1 { background: #581c87; color: #d8b4fe; }
+  .badge-c2 { background: #831843; color: #f9a8d4; }
+  .module-card { background: #1e293b; border-radius: 12px; padding: 20px; margin: 15px 0; border-left: 4px solid #3b82f6; }
+  .module-card.new { border-left-color: #22c55e; }
+  .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .module-title { font-size: 1.1em; font-weight: 600; color: #f1f5f9; }
+  .objectives { margin: 10px 0; padding-left: 20px; }
+  .objectives li { color: #94a3b8; margin: 5px 0; }
+  .question-block { background: #0f172a; border-radius: 8px; padding: 15px; margin: 10px 0; border: 1px solid #334155; }
+  .question-text { font-weight: 600; color: #f8fafc; margin-bottom: 10px; }
+  .options { list-style: none; padding: 0; }
+  .options li { padding: 8px 12px; margin: 4px 0; border-radius: 6px; background: #1e293b; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+  .options li:hover { background: #334155; }
+  .options li.correct { background: #166534; border-color: #22c55e; color: #86efac; }
+  .options li.wrong { background: #7f1d1d; border-color: #ef4444; color: #fca5a5; }
+  .explanation { display: none; margin-top: 8px; padding: 10px; background: #1a2744; border-radius: 6px; color: #93c5fd; font-size: 0.9em; border-left: 3px solid #3b82f6; }
+  .explanation.show { display: block; }
+  .section-tabs { display: flex; gap: 5px; margin: 20px 0; flex-wrap: wrap; }
+  .tab-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #94a3b8; cursor: pointer; font-size: 0.9em; }
+  .tab-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; }
+  .tag-existing { background: #1e40af; color: #93c5fd; }
+  .tag-new { background: #166534; color: #86efac; }
+  .duration { color: #64748b; font-size: 0.85em; }
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+  th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid #334155; }
+  th { background: #1e293b; color: #94a3b8; font-size: 0.85em; text-transform: uppercase; }
+  tr:hover { background: #1e293b; }
+  .nav { background: #1e293b; padding: 15px 20px; margin-bottom: 30px; border-radius: 12px; display: flex; gap: 15px; flex-wrap: wrap; }
+  .nav a { color: #38bdf8; text-decoration: none; padding: 5px 10px; border-radius: 6px; }
+  .nav a:hover { background: #334155; }
+  .nav a.active { background: #3b82f6; color: white; }
+  @media (max-width: 768px) { .stats-bar { flex-direction: column; } .module-header { flex-direction: column; gap: 5px; } }
+</style>
+
+<script>
+function checkAnswer(btn, isCorrect, explanationId) {
+  const parent = btn.parentElement;
+  const allOptions = parent.querySelectorAll('li');
+  allOptions.forEach(li => {
+    li.style.pointerEvents = 'none';
+    if (li.dataset.correct === 'true') li.classList.add('correct');
+    else if (li === btn && !isCorrect) li.classList.add('wrong');
+  });
+  document.getElementById(explanationId).classList.add('show');
+}
+function showTab(tabGroup, tabId) {
+  document.querySelectorAll('.' + tabGroup + '-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.' + tabGroup + '-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelector('[onclick*="' + tabId + '"]').classList.add('active');
+}
+</script>
+
+<style>
+  .progress-bar { background: #1e293b; border-radius: 10px; height: 8px; margin: 20px 0; }
+  .progress-fill { background: linear-gradient(90deg, #22c55e, #3b82f6, #a855f7); height: 100%; border-radius: 10px; transition: width 0.5s; }
+  .level-result { text-align: center; padding: 40px; background: #1e293b; border-radius: 16px; margin: 30px 0; }
+  .level-result .level { font-size: 4em; font-weight: bold; }
+  .score-display { font-size: 1.5em; color: #94a3b8; margin: 10px 0; }
+</style>
+<script>
+let score = 0; let total = 0; let answered = 0;
+function checkPlacement(btn, isCorrect, explanationId, questionTotal) {
+  total = questionTotal;
+  answered++;
+  if (isCorrect) score++;
+  const parent = btn.parentElement;
+  parent.querySelectorAll('li').forEach(li => {
+    li.style.pointerEvents = 'none';
+    if (li.dataset.correct === 'true') li.classList.add('correct');
+    else if (li === btn && !isCorrect) li.classList.add('wrong');
+  });
+  document.getElementById(explanationId).classList.add('show');
+  // Update progress
+  const pct = (answered / total) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('score-live').textContent = score + '/' + answered;
+  if (answered >= total) {
+    let level = 'A1';
+    if (score >= 31) level = 'C1';
+    else if (score >= 23) level = 'B2';
+    else if (score >= 15) level = 'B1';
+    else if (score >= 9) level = 'A2';
+    const colors = {'A1':'#22c55e','A2':'#84cc16','B1':'#f59e0b','B2':'#f97316','C1':'#a855f7'};
+    document.getElementById('result-section').innerHTML = `
+      <div class="level-result">
+        <div style="color:#94a3b8;">Votre niveau estimé :</div>
+        <div class="level" style="color:${colors[level]}">${level}</div>
+        <div class="score-display">${score} / ${total} (${Math.round(score/total*100)}%)</div>
+      </div>`;
+  }
+}
+</script>
+</head>
+<body>
+<div class="container">
+<h1>🎯 AGTM — Test de Placement en Langue Anglaise</h1>
+<p style="color:#94a3b8;">40 questions progressives • A1 → C1 • Durée : ~25 minutes</p>
+
+<div class="nav">
+  <a href="catalogue.html">📚 Catalogue</a>
+  <a href="quiz_preview.html">📝 Quiz</a>
+  <a href="placement_preview.html" class="active">🎯 Test Placement</a>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0;">
+  <span style="color:#94a3b8;">Progression</span>
+  <span style="color:#22d3ee;font-weight:bold;" id="score-live">0/0</span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+<div id="result-section"></div>
+
+<h3 style="color:#22c55e;"><span class="badge badge-a1">A1</span> Questions A1</h3>
+<div class="question-block">
+  <div class="question-text">Q1/40. She _____ a teacher.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_1', 40)">A) am</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_1', 40)">B) is</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_1', 40)">C) are</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_1', 40)">D) be</li>
+  </ul>
+  <div class="explanation" id="pexp_1">💡 She → is.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q2/40. I _____ from Abidjan.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_2', 40)">A) is</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_2', 40)">B) am</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_2', 40)">C) are</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_2', 40)">D) was</li>
+  </ul>
+  <div class="explanation" id="pexp_2">💡 I → am.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q3/40. What is _____ name?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_3', 40)">A) you</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_3', 40)">B) your</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_3', 40)">C) yours</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_3', 40)">D) you're</li>
+  </ul>
+  <div class="explanation" id="pexp_3">💡 Possessif → your.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q4/40. There _____ two books on the table.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_4', 40)">A) is</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_4', 40)">B) are</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_4', 40)">C) has</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_4', 40)">D) have</li>
+  </ul>
+  <div class="explanation" id="pexp_4">💡 Pluriel → are.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q5/40. He _____ coffee every morning.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_5', 40)">A) drink</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_5', 40)">B) drinks</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_5', 40)">C) drinking</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_5', 40)">D) is drink</li>
+  </ul>
+  <div class="explanation" id="pexp_5">💡 He → drinks.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q6/40. _____ you like football?</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_6', 40)">A) Do</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_6', 40)">B) Does</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_6', 40)">C) Are</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_6', 40)">D) Is</li>
+  </ul>
+  <div class="explanation" id="pexp_6">💡 You → Do you...?</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q7/40. We live _____ Cocody.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_7', 40)">A) at</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_7', 40)">B) in</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_7', 40)">C) on</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_7', 40)">D) to</li>
+  </ul>
+  <div class="explanation" id="pexp_7">💡 Ville/quartier → in.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q8/40. This is _____ orange.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_8', 40)">A) a</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_8', 40)">B) an</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_8', 40)">C) the</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_8', 40)">D) --</li>
+  </ul>
+  <div class="explanation" id="pexp_8">💡 Voyelle → an.</div>
+</div>
+
+<h3 style="color:#84cc16;"><span class="badge badge-a2">A2</span> Questions A2</h3>
+<div class="question-block">
+  <div class="question-text">Q9/40. She _____ TV when I called.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_9', 40)">A) watched</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_9', 40)">B) was watching</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_9', 40)">C) watches</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_9', 40)">D) is watching</li>
+  </ul>
+  <div class="explanation" id="pexp_9">💡 Action en cours au passé → was watching.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q10/40. He is _____ than his brother.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_10', 40)">A) more tall</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_10', 40)">B) taller</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_10', 40)">C) tallest</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_10', 40)">D) most tall</li>
+  </ul>
+  <div class="explanation" id="pexp_10">💡 Comparatif → taller.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q11/40. They _____ to the cinema last night.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_11', 40)">A) go</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_11', 40)">B) went</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_11', 40)">C) gone</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_11', 40)">D) going</li>
+  </ul>
+  <div class="explanation" id="pexp_11">💡 Last night → went.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q12/40. You _____ smoke in the hospital.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_12', 40)">A) don't have to</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_12', 40)">B) mustn't</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_12', 40)">C) shouldn't to</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_12', 40)">D) can</li>
+  </ul>
+  <div class="explanation" id="pexp_12">💡 Interdiction → mustn't.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q13/40. I'm going _____ buy a new phone.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_13', 40)">A) for</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_13', 40)">B) to</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_13', 40)">C) --</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_13', 40)">D) at</li>
+  </ul>
+  <div class="explanation" id="pexp_13">💡 Going to + infinitif.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q14/40. How _____ water do you drink per day?</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_14', 40)">A) many</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_14', 40)">B) much</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_14', 40)">C) lot</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_14', 40)">D) few</li>
+  </ul>
+  <div class="explanation" id="pexp_14">💡 Indénombrable → much.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q15/40. She has _____ been to London.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_15', 40)">A) ever</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_15', 40)">B) never</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_15', 40)">C) already</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_15', 40)">D) yet</li>
+  </ul>
+  <div class="explanation" id="pexp_15">💡 Absence d'expérience → never.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q16/40. The restaurant is _____ the bank and the pharmacy.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_16', 40)">A) among</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_16', 40)">B) between</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_16', 40)">C) next</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_16', 40)">D) behind</li>
+  </ul>
+  <div class="explanation" id="pexp_16">💡 Entre deux → between.</div>
+</div>
+
+<h3 style="color:#f59e0b;"><span class="badge badge-b1">B1</span> Questions B1</h3>
+<div class="question-block">
+  <div class="question-text">Q17/40. I've lived here _____ 2018.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_17', 40)">A) for</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_17', 40)">B) since</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_17', 40)">C) during</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_17', 40)">D) from</li>
+  </ul>
+  <div class="explanation" id="pexp_17">💡 Point précis → since.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q18/40. The report _____ by the manager yesterday.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_18', 40)">A) wrote</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_18', 40)">B) was written</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_18', 40)">C) was wrote</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_18', 40)">D) has written</li>
+  </ul>
+  <div class="explanation" id="pexp_18">💡 Passif passé → was written.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q19/40. If it rains, I _____ at home.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_19', 40)">A) stay</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_19', 40)">B) will stay</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_19', 40)">C) would stay</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_19', 40)">D) stayed</li>
+  </ul>
+  <div class="explanation" id="pexp_19">💡 Type 1 → will stay.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q20/40. She asked me _____ I wanted to join.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_20', 40)">A) that</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_20', 40)">B) if</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_20', 40)">C) what</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_20', 40)">D) do</li>
+  </ul>
+  <div class="explanation" id="pexp_20">💡 Discours indirect → if.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q21/40. I'm not used to _____ early.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_21', 40)">A) wake</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_21', 40)">B) waking</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_21', 40)">C) woke</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_21', 40)">D) to wake</li>
+  </ul>
+  <div class="explanation" id="pexp_21">💡 Used to + -ing.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q22/40. The woman _____ car was stolen called the police.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_22', 40)">A) who</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_22', 40)">B) whose</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_22', 40)">C) which</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_22', 40)">D) that</li>
+  </ul>
+  <div class="explanation" id="pexp_22">💡 Possession → whose.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q23/40. You'd better _____ a jacket.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_23', 40)">A) to take</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_23', 40)">B) take</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_23', 40)">C) taking</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_23', 40)">D) took</li>
+  </ul>
+  <div class="explanation" id="pexp_23">💡 Had better + base verbale.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q24/40. By the time we arrived, the film _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_24', 40)">A) already started</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_24', 40)">B) had already started</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_24', 40)">C) has started</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_24', 40)">D) was starting</li>
+  </ul>
+  <div class="explanation" id="pexp_24">💡 Past perfect → had already started.</div>
+</div>
+
+<h3 style="color:#f97316;"><span class="badge badge-b2">B2</span> Questions B2</h3>
+<div class="question-block">
+  <div class="question-text">Q25/40. If I _____ you, I would accept the offer.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_25', 40)">A) am</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_25', 40)">B) were</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_25', 40)">C) would be</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_25', 40)">D) had been</li>
+  </ul>
+  <div class="explanation" id="pexp_25">💡 Type 2 → were.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q26/40. Not only _____ the project on time, but she exceeded expectations.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_26', 40)">A) she completed</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_26', 40)">B) did she complete</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_26', 40)">C) she did complete</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_26', 40)">D) has she completed</li>
+  </ul>
+  <div class="explanation" id="pexp_26">💡 Inversion après Not only.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q27/40. He denied _____ the confidential documents.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_27', 40)">A) to leak</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_27', 40)">B) having leaked</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_27', 40)">C) leak</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_27', 40)">D) to have leaked</li>
+  </ul>
+  <div class="explanation" id="pexp_27">💡 Deny + gérondif parfait.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q28/40. The deadline needs to be _____ to next Friday.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_28', 40)">A) put off</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_28', 40)">B) pushed back</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_28', 40)">C) taken away</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_28', 40)">D) called off</li>
+  </ul>
+  <div class="explanation" id="pexp_28">💡 Repousser → pushed back.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q29/40. _____ the weather had been terrible, the event was a success.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_29', 40)">A) Despite</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_29', 40)">B) Although</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_29', 40)">C) However</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_29', 40)">D) In spite</li>
+  </ul>
+  <div class="explanation" id="pexp_29">💡 Although + clause.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q30/40. She _____ the report if she had had more time.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_30', 40)">A) will finish</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_30', 40)">B) would have finished</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_30', 40)">C) would finish</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_30', 40)">D) had finished</li>
+  </ul>
+  <div class="explanation" id="pexp_30">💡 Type 3 → would have finished.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q31/40. The manager insisted that every employee _____ the training.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_31', 40)">A) attends</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_31', 40)">B) attend</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_31', 40)">C) attended</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_31', 40)">D) would attend</li>
+  </ul>
+  <div class="explanation" id="pexp_31">💡 Subjonctif → attend.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q32/40. I wish I _____ harder at university.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_32', 40)">A) studied</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_32', 40)">B) had studied</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_32', 40)">C) would study</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_32', 40)">D) have studied</li>
+  </ul>
+  <div class="explanation" id="pexp_32">💡 Regret passé → had studied.</div>
+</div>
+
+<h3 style="color:#a855f7;"><span class="badge badge-c1">C1</span> Questions C1</h3>
+<div class="question-block">
+  <div class="question-text">Q33/40. Rarely _____ such a compelling argument.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_33', 40)">A) I have heard</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_33', 40)">B) have I heard</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_33', 40)">C) I heard</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_33', 40)">D) did I hear</li>
+  </ul>
+  <div class="explanation" id="pexp_33">💡 Inversion avec adverbe négatif.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q34/40. The proposal, _____ merits are undeniable, was rejected.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_34', 40)">A) which</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_34', 40)">B) whose</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_34', 40)">C) that</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_34', 40)">D) of which</li>
+  </ul>
+  <div class="explanation" id="pexp_34">💡 Possession → whose.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q35/40. Had the government acted sooner, the crisis _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_35', 40)">A) would be</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_35', 40)">B) could have been averted</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_35', 40)">C) had been</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_35', 40)">D) will have been</li>
+  </ul>
+  <div class="explanation" id="pexp_35">💡 Type 3 inversé.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q36/40. The findings are _____ with previous research.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_36', 40)">A) coherent to</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_36', 40)">B) consistent with</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_36', 40)">C) relevant for</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_36', 40)">D) compliant to</li>
+  </ul>
+  <div class="explanation" id="pexp_36">💡 Consistent with = conforme à.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q37/40. It is imperative that the board _____ a decision.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_37', 40)">A) makes</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_37', 40)">B) make</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_37', 40)">C) will make</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_37', 40)">D) made</li>
+  </ul>
+  <div class="explanation" id="pexp_37">💡 Subjonctif après imperative.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q38/40. The CEO, _____ to have been aware, resigned.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_38', 40)">A) who alleged</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_38', 40)">B) alleged</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_38', 40)">C) alleging</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_38', 40)">D) was alleged</li>
+  </ul>
+  <div class="explanation" id="pexp_38">💡 Participe passé = alleged.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q39/40. _____ notwithstanding, the project proceeded.</div>
+  <ul class="options">
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_39', 40)">A) The objections</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_39', 40)">B) Despite objections</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_39', 40)">C) Although objections</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_39', 40)">D) However objections</li>
+  </ul>
+  <div class="explanation" id="pexp_39">💡 Noun + notwithstanding.</div>
+</div>
+<div class="question-block">
+  <div class="question-text">Q40/40. So thorough was the investigation that no stone _____.</div>
+  <ul class="options">
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_40', 40)">A) left unturned</li>
+    <li data-correct="true" onclick="checkPlacement(this, true, 'pexp_40', 40)">B) was left unturned</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_40', 40)">C) had left</li>
+    <li data-correct="false" onclick="checkPlacement(this, false, 'pexp_40', 40)">D) has been unturned</li>
+  </ul>
+  <div class="explanation" id="pexp_40">💡 Idiome + inversion.</div>
+</div>
+</div></body></html>

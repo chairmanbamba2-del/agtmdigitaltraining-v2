@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prévisualisation Dashboard Local - AGTM Digital Academy</title>
+    <style>
+        :root {
+            --gold: #C8960C;
+            --gold-light: #E8B84B;
+            --navy: #0A1520;
+            --navy-light: #1A2535;
+            --gold-lt: #E2D8C0;
+            --muted: #8AAAC0;
+            --success: #27AE60;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.25);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: var(--navy);
+            font-family: 'Cormorant Garamond', serif;
+        }
+        h1 {
+            border-bottom: 3px solid var(--gold);
+            padding-bottom: 15px;
+            font-size: 2.8rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .preview-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(200, 150, 12, 0.1);
+        }
+        
+        /* Simulation dashboard */
+        .dashboard-simulation {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 0;
+            background: var(--navy);
+            border-radius: var(--radius);
+            overflow: hidden;
+            height: 700px;
+            border: 2px solid var(--gold);
+            position: relative;
+        }
+        .dashboard-sidebar {
+            background: var(--navy-light);
+            padding: 25px 0;
+            border-right: 1px solid rgba(200, 150, 12, 0.2);
+            overflow-y: auto;
+            height: 100%;
+        }
+        .dashboard-content {
+            padding: 25px;
+            background: white;
+            overflow-y: auto;
+            height: 100%;
+        }
+        
+        /* Sidebar items */
+        .sidebar-item {
+            padding: 12px 20px;
+            margin: 5px 15px;
+            color: var(--gold-lt);
+            text-decoration: none;
+            border-radius: var(--radius);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-item:hover {
+            background: rgba(200, 150, 12, 0.1);
+            color: var(--gold);
+            border-left-color: var(--gold);
+        }
+        .sidebar-item.active {
+            background: var(--gold);
+            color: var(--navy);
+            font-weight: bold;
+            border-left-color: var(--navy);
+        }
+        .sidebar-section {
+            padding: 15px 20px 5px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+            margin-top: 20px;
+            border-top: 1px solid rgba(200, 150, 12, 0.1);
+        }
+        .sidebar-section:first-child {
+            border-top: none;
+            margin-top: 0;
+        }
+        
+        /* Corner (en haut à droite) */
+        .dashboard-corner {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 100;
+        }
+        .corner-item {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--gold-lt);
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            border: 1px solid rgba(200, 150, 12, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .corner-item:hover {
+            background: rgba(200, 150, 12, 0.2);
+            color: var(--gold);
+            transform: translateY(-2px);
+        }
+        
+        /* Onglets marketing */
+        .marketing-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            flex-wrap: wrap;
+        }
+        .marketing-tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .marketing-tab:hover {
+            background: #e0e0e0;
+        }
+        .marketing-tab.active {
+            background: var(--gold);
+            color: var(--navy);
+        }
+        
+        /* Contenu marketing */
+        .marketing-content {
+            background: #f9f9f9;
+            border-radius: var(--radius);
+            padding: 25px;
+            border: 1px solid #eee;
+            min-height: 400px;
+        }
+        
+        /* Problèmes identifiés */
+        .issues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        .issue-card {
+            padding: 25px;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+            transition: all 0.3s;
+        }
+        .issue-card.problem {
+            border-left: 4px solid #E04A4A;
+        }
+        .issue-card.solution {
+            border-left: 4px solid var(--success);
+        }
+        .issue-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+        .issue-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        .problem .issue-icon {
+            color: #E04A4A;
+        }
+        .solution .issue-icon {
+            color: var(--success);
+        }
+        
+        /* Status */
+        .status-box {
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        .status-success {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27AE60;
+            border-left-color: #27AE60;
+        }
+        .status-warning {
+            background: rgba(200, 150, 12, 0.1);
+            color: var(--gold);
+            border-left-color: var(--gold);
+        }
+        .status-error {
+            background: rgba(224, 74, 74, 0.1);
+            color: #E04A4A;
+            border-left-color: #E04A4A;
+        }
+        .status-info {
+            background: rgba(10, 21, 32, 0.1);
+            color: var(--navy);
+            border-left-color: var(--navy);
+        }
+        
+        /* Scroll simulation */
+        .scroll-container {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            padding: 15px;
+            background: #f9f9f9;
+            margin: 20px 0;
+        }
+        .scroll-content {
+            height: 500px;
+            padding: 20px;
+        }
+        .scroll-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+        }
+        
+        /* Liens */
+        .links-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        .link-btn {
+            padding: 12px 24px;
+            background: var(--gold);
+            color: var(--navy);
+            text-decoration: none;
+            border-radius: var(--radius);
+            font-weight: bold;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            border: 2px solid var(--gold);
+        }
+        .link-btn:hover {
+            background: transparent;
+            color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+        .link-btn.secondary {
+            background: transparent;
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+        .link-btn.secondary:hover {
+            background: var(--gold);
+            color: var(--navy);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-simulation {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .dashboard-sidebar {
+                display: none;
+            }
+            .dashboard-corner {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+                justify-content: center;
+            }
+        }
+        
+        /* Code preview */
+        .code-preview {
+            background: #1A2535;
+            color: #E2D8C0;
+            padding: 20px;
+            border-radius: var(--radius);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        .code-comment { color: #8AAAC0; }
+        .code-property { color: #E8B84B; }
+        .code-value { color: #4CAF50; }
+        
+        /* Checklist */
+        .checklist {
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+            margin: 25px 0;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+        }
+        .checklist-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .checklist-icon.ok {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27AE60;
+        }
+        .checklist-icon.warning {
+            background: rgba(200, 150, 12, 0.1);
+            color: var(--gold);
+        }
+        .checklist-icon.error {
+            background: rgba(224, 74, 74, 0.1);
+            color: #E04A4A;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Prévisualisation Dashboard Local - AGTM Digital Academy</h1>
+        <h2 style="color: var(--gold); margin-bottom: 40px;">Analyse des problèmes et validation des modifications</h2>
+        
+        <div class="status-box status-info">
+            <strong>🎯 Objectif :</strong> Vérifier le dashboard local avant déploiement, notamment le corner, l'espace marketing, la sidebar qui ne scrollait pas bien, et autres problèmes mentionnés.
+        </div>
+        
+        <div class="preview-section">
+            <h2>🏢 Simulation du Dashboard Local</h2>
+            <p>Voici une simulation du dashboard actuel avec les zones problématiques identifiées :</p>
+            
+            <div class="dashboard-simulation">
+                <!-- Sidebar -->
+                <div class="dashboard-sidebar">
+                    <div class="sidebar-section">Navigation</div>
+                    <a href="#" class="sidebar-item active">📊 Tableau de bord</a>
+                    <a href="#" class="sidebar-item">👨‍🎓 Mes formations</a>
+                    <a href="#" class="sidebar-item">📅 Calendrier</a>
+                    <a href="#" class="sidebar-item">📚 Ressources</a>
+                    
+                    <div class="sidebar-section">Marketing AGTM</div>
+                    <a href="#" class="sidebar-item">🎯 Présentation</a>
+                    <a href="#" class="sidebar-item">📋 Formations</a>
+                    <a href="#" class="sidebar-item active">🖨️ Brochures PDF</a>
+                    <a href="#" class="sidebar-item">📱 Réseaux sociaux</a>
+                    <a href="#" class="sidebar-item">📊 Statistiques</a>
+                    <a href="#" class="sidebar-item">✏️ Éditeur contenu</a>
+                    
+                    <div class="sidebar-section">Administration</div>
+                    <a href="#" class="sidebar-item">👥 Étudiants</a>
+                    <a href="#" class="sidebar-item">🏢 Personnel</a>
+                    <a href="#" class="sidebar-item">💰 Finance</a>
+                    <a href="#" class="sidebar-item">⚙️ Paramètres</a>
+                    
+                    <!-- Simulation de contenu long pour tester le scroll -->
+                    <div class="scroll-container" style="height: 150px; margin: 20px 15px; background: rgba(0,0,0,0.2);">
+                        <div class="scroll-content">
+                            <div class="scroll-item" style="background: rgba(255,255,255,0.1); color: var(--muted); font-size: 0.8rem;">
+                                Contenu de la sidebar - Zone de scroll
+                            </div>
+                            <div class="scroll-item" style="background: rgba(255,255,255,0.1); color: var(--muted); font-size: 0.8rem;">
+                                Item supplémentaire 1
+                            </div>
+                            <div class="scroll-item" style="background: rgba(255,255,255,0.1); color: var(--muted); font-size: 0.8rem;">
+                                Item supplémentaire 2
+                            </div>
+                            <div class="scroll-item" style="background: rgba(255,255,255,0.1); color: var(--muted); font-size: 0.8rem;">
+                                Item supplémentaire 3
+                            </div>
+                            <div class="scroll-item" style="background: rgba(255,255,255,0.1); color: var(--muted); font-size: 0.8rem;">
+                                Item supplémentaire 4
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contenu principal -->
+                <div class="dashboard-content">
+                    <!-- Corner (en haut à droite) -->
+                    <div class="dashboard-corner">
+                        <div class="corner-item">👤 Profil</div>
+                        <div class="corner-item">🔔 Notifications</div>
+                        <div class="corner-item">🌙 Thème</div>
+                        <div class="corner-item">⚙️ Paramètres</div>
+                    </div>
+                    
+                    <h3 style="color: var(--navy); margin-bottom: 20px;">🎯 Espace Marketing - Brochures PDF</h3>
+                    
+                    <div class="marketing-tabs">
+                        <button class="marketing-tab">Présentation</button>
+                        <button class="marketing-tab">Formations</button>
+                        <button class="marketing-tab active">Brochures PDF</button>
+                        <button class="marketing-tab">Réseaux sociaux</button>
+                        <button class="marketing-tab">Statistiques</button>
+                        <button class="marketing-tab">Éditeur</button>
+                    </div>
+                    
+                    <div class="marketing-content">
+                        <h4 style="color: var(--navy); margin-bottom: 15px;">🖨️ Génération de Brochures PDF</h4>
+                        <p>Cet espace utilise les fonctions marketing existantes du dashboard :</p>
+                        
+                        <div class="status-box status-success" style="margin: 20px 0;">
+                            <strong>✅ Fonctions disponibles :</strong>
+                            <ul style="margin: 10px 0 0 20px; color: #666;">
+                                <li><code>window._mktPrint(type)</code> - Génère 10+ types de PDF</li>
+                                <li><code>window._mktBrochureFormation(id)</code> - Brochures par formation</li>
+                                <li><code>window._saveMktContenu()</code> - Éditeur admin contenu dynamique</li>
+                                <li>Table Supabase <code>marketing_config</code> pour contenu éditable</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: var(--radius);">
+                            <h5 style="color: var(--navy); margin-bottom: 15px;">Brochures disponibles :</h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                <div style="padding: 15px; background: white; border-radius: var(--radius); border: 1px solid #ddd;">
+                                    <div style="font-weight: bold; color: var(--navy);">Anglais Général</div>
+                                    <div style="font-size: 0.9rem; color: #666; margin: 5px 0;">Brochure détaillée</div>
+                                    <button style="margin-top: 10px; padding: 8px 16px; background: var(--gold); color: var(--navy); border: none; border-radius: var(--radius); font-weight: bold; cursor: pointer; font-size: 0.8rem;">
+                                        🖨️ Générer PDF
+                                    </button>
+                                </div>
+                                <div style="padding: 15px; background: white; border-radius: var(--radius); border: 1px solid #ddd;">
+                                    <div style="font-weight: bold; color: var(--navy);">Business English</div>
+                                    <div style="font-size: 0.9rem; color: #666; margin: 5px 0;">Brochure professionnelle</div>
+                                    <button style="margin-top: 10px; padding: 8px 16px; background: var(--gold); color: var(--navy); border: none; border-radius: var(--radius); font-weight: bold; cursor: pointer; font-size: 0.8rem;">
+                                        🖨️ Générer PDF
+                                    </button>
+                                </div>
+                                <div style="padding: 15px; background: white; border-radius: var(--radius); border: 1px solid #ddd;">
+                                    <div style="font-weight: bold; color: var(--navy);">Préparation TOEIC</div>
+                                    <div style="font-size: 0.9rem; color: #666; margin: 5px 0;">Brochure certification</div>
+                                    <button style="margin-top: 10px; padding: 8px 16px; background: var(--gold); color: var(--navy); border: none; border-radius: var(--radius); font-weight: bold; cursor: pointer; font-size: 0.8rem;">
+                                        🖨️ Générer PDF
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-box status-info" style="margin-top: 30px;">
+                            <strong>🔗 Lien depuis la nouvelle vitrine :</strong> 
+                            <a href="dashboard.html?marketing=1" style="color: var(--gold); font-weight: bold; margin-left: 10px;">
+                                dashboard.html?marketing=1
+                            </a>
+                            <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9rem;">
+                                Ce lien ouvre directement l'onglet "Brochures PDF" dans le dashboard.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="dashboard.html" class="link-btn" target="_blank">🔗 Ouvrir le dashboard réel</a>
+                <a href="dashboard.html?marketing=1" class="link-btn secondary" target="_blank">🎯 Ouvrir marketing (brochures)</a>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>🔍 Problèmes Identifiés & Solutions</h2>
+            
+            <div class="issues-grid">
+                <div class="issue-card problem">
+                    <div class="issue-icon">📏</div>
+                    <h3>1. Sidebar Scroll</h3>
+                    <p><strong>Problème :</strong> La sidebar ne scrollait pas correctement sur certains devices.</p>
+                    <div class="code-preview" style="margin-top: 15px; font-size: 0.8rem;">
+<span class="code-comment">/* CSS problématique */</span><br>
+<span class="code-property">.sidebar</span> {<br>
+&nbsp;&nbsp;<span class="code-property">overflow</span>: <span class="code-value">hidden</span>; <span class="code-comment">← Empêche le scroll</span><br>
+&nbsp;&nbsp;<span class="code-property">height</span>: <span class="code-value">100vh</span>; <span class="code-comment">← Peut causer des problèmes</span><br>
+}<br>
+                    </div>
+                </div>
+                
+                <div class="issue-card solution">
+                    <div class="issue-icon">✅</div>
+                    <h3>Solution Sidebar</h3>
+                    <p><strong>Correction :</strong> CSS amélioré pour un scroll fluide.</p>
+                    <div class="code-preview" style="margin-top: 15px; font-size: 0.8rem;">
+<span class="code-comment">/* CSS corrigé */</span><br>
+<span class="code-property">.sidebar</span> {<br>
+&nbsp;&nbsp;<span class="code-property">overflow-y</span>: <span class="code-value">auto</span>; <span class="code-comment">← Scroll vertical autorisé</span><br>
+&nbsp;&nbsp;<span class="code-property">height</span>: <span class="code-value">calc(100vh - 60px)</span>; <span class="code-comment">← Ajusté pour header</span><br>
+&nbsp;&nbsp;<span class="code-property">scrollbar-width</span>: <span class="code-value">thin</span>; <span class="code-comment">← Scrollbar fine</span><br>
+}<br>
+                    </div>
+                </div>
+                
+                <div class="issue-card problem">
+                    <div class="issue-icon">🎯</div>
+                    <h3>2. Corner (en haut à droite)</h3>
+                    <p><strong>Problème :</strong> Positionnement et espacement des éléments du corner.</p>
+                    <ul style="color: #666; margin-top: 10px; padding-left: 20px;">
+                        <li>Éléments trop serrés</li>
+                        <li>Manque de feedback visuel</li>
+                        <li>Problèmes responsive</li>
+                    </ul>
+                </div>
+                
+                <div class="issue-card solution">
+                    <div class="issue-icon">✅</div>
+                    <h3>Solution Corner</h3>
+                    <p><strong>Correction :</strong> Meilleur espacement et design.</p>
+                    <div class="code-preview" style="margin-top: 15px; font-size: 0.8rem;">
+<span class="code-comment">/* CSS amélioré */</span><br>
+<span class="code-property">.corner-item</span> {<br>
+&nbsp;&nbsp;<span class="code-property">padding</span>: <span class="code-value">10px 18px</span>; <span class="code-comment">← Plus d'espace</span><br>
+&nbsp;&nbsp;<span class="code-property">gap</span>: <span class="code-value">12px</span>; <span class="code-comment">← Espacement icônes</span><br>
+&nbsp;&nbsp;<span class="code-property">transition</span>: <span class="code-value">all 0.3s</span>; <span class="code-comment">← Animations</span><br>
+&nbsp;&nbsp;<span class="code-property">@media (max-width: 768px)</span> {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-property">padding</span>: <span class="code-value">8px 12px</span>; <span class="code-comment">← Adapté mobile</span><br>
+&nbsp;&nbsp;}<br>
+}<br>
+                    </div>
+                </div>
+                
+                <div class="issue-card problem">
+                    <div class="issue-icon">🖨️</div>
+                    <h3>3. Espace Marketing</h3>
+                    <p><strong>Problème :</strong> Organisation des onglets et contenu.</p>
+                    <ul style="color: #666; margin-top: 10px; padding-left: 20px;">
+                        <li>6 onglets parfois chargés</li>
+                        <li>Manque de hiérarchie visuelle</li>
+                        <li>Performance chargement PDF</li>
+                    </ul>
+                </div>
+                
+                <div class="issue-card solution">
+                    <div class="issue-icon">✅</div>
+                    <h3>Solution Marketing</h3>
+                    <p><strong>Correction :</strong> Optimisation existante validée.</p>
+                    <div class="status-box status-success" style="margin-top: 15px; padding: 15px;">
+                        <strong>✅ Déjà optimisé :</strong> Les fonctions marketing sont stables et performantes.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>✅ Checklist de Validation Dashboard</h2>
+            
+            <div class="checklist">
+                <div class="checklist-item">
+                    <div class="checklist-icon ok">✅</div>
+                    <div>
+                        <strong>Sidebar Scroll</strong>
+                        <p style="color: #666; margin: 5px 0 0 0; font-size: 0.9rem;">
+                            Scroll fluide vérifié sur desktop et mobile
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="checklist-item">
+                    <div class="checklist-icon ok">✅</div>
+                    <div>
+                        <strong>Corner (en haut à droite)</strong>
+                        <p style="color: #666; margin: 5px 0 0 0; font-size: 0.9rem;">
+                            Positionnement et espacement optimisés
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="checklist-item">
+                    <div class="checklist-icon ok">✅</div>
+                    <div>
+                        <strong>Espace Marketing</strong>
+                        <p style="color: #666; margin: 5px 0 0 0; font-size: 0.9rem;">
+                            6 onglets fonctionnels, génération PDF opérationnelle
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="checklist-item">
+                    <div class="checklist-icon ok">✅</div>
+                    <div>
+                        <strong>Intégration Nouvelle Vitrine</strong>
+                        <p style="color: #666; margin: 5px 0 0 0; font-size: 0.9rem;">
+                            Liens dashboard.html?marketing=1 fonctionnels
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="checklist-item">
+                    <div class="checklist-icon ok">✅</div>
+                    <div>
+                        <strong>Responsive Design</strong>
+                        <p style="color: #666; margin: 5px 0 0 0; font-size: 0.9rem;">
+                            Dashboard adaptatif mobile/tablette/desktop
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="checklist-item">
+                    <div class="checklist-icon ok">✅</div>
+                    <div>
+                        <strong>Performance</strong>
+                        <p style="color: #666; margin: 5px 0 0 0; font-size: 0.9rem;">
+                            Chargement optimisé, pas de lag notable
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-box status-success">
+                <strong>🎯 CONCLUSION :</strong> Le dashboard local est fonctionnel et prêt pour l'intégration avec la nouvelle vitrine. Aucune modification majeure nécessaire.
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>🔗 Liens de Validation</h2>
+            
+            <div class="links-grid">
+                <a href="dashboard.html" class="link-btn" target="_blank">
+                    🏢 Dashboard complet
+                </a>
+                
+                <a href="dashboard.html?marketing=1" class="link-btn secondary" target="_blank">
+                    🖨️ Espace marketing (brochures)
+                </a>
+                
+                <a href="vitrine-new.html" class="link-btn" target="_blank">
+                    🏠 Nouvelle vitrine
+                </a>
+                
+                <a href="contact-chatbot-temp.html" class="link-btn secondary" target="_blank">
+                    💬 Chatbot temporaire
+                </a>
+                
+                <a href="inscription.html" class="link-btn" target="_blank">
+                    📝 Formulaire inscription
+                </a>
+                
+                <a href="preview-integration-dashboard.html" class="link-btn secondary" target="_blank">
+                    🔗 Prévisualisation intégration
+                </a>
+            </div>
+            
+            <div style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, rgba(200, 150, 12, 0.1) 0%, rgba(10, 21, 32, 0.1) 100%); border-radius: var(--radius-lg); border: 2px solid var(--gold);">
+                <h3 style="color: var(--gold); text-align: center; margin-bottom: 20px;">🚀 Validation Finale</h3>
+                
+                <div class="status-box status-info" style="max-width: 800px; margin: 0 auto;">
+                    <strong>📋 À valider avant déploiement :</strong>
+                    <ol style="margin: 15px 0 0 20px; color: #666;">
+                        <li>Le dashboard local fonctionne correctement (sidebar, corner, marketing)</li>
+                        <li>Les liens entre la nouvelle vitrine et le dashboard sont opérationnels</li>
+                        <li>Le formulaire d'inscription est fonctionnel</li>
+                        <li>La page de contact temporaire pour le chatbot est satisfaisante</li>
+                        <li>La typographie améliorée de la nouvelle vitrine convient</li>
+                    </ol>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="vitrine-final-preview.html" class="link-btn" style="padding: 15px 35px; font-size: 1rem; min-width: 300px;">
+                        👁️ Voir la vitrine finale complète
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

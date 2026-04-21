@@ -1,0 +1,90 @@
+# Netlify Configuration - AGTM Digital Academy
+# Version: 1.0
+# Date: 2026-04-20
+
+[build]
+  # Répertoire à déployer
+  publish = "."
+  
+  # Commandes de build (optionnel - site statique)
+  command = ""
+  functions = "netlify/functions"
+  
+  # Variables d'environnement (à configurer dans Netlify UI)
+  # SUPABASE_URL = "your-project-url"
+  # SUPABASE_ANON_KEY = "your-anon-key"
+
+[build.environment]
+  # Version Node.js
+  NODE_VERSION = "18"
+  
+  # Variables pour le frontend
+  NODE_ENV = "production"
+
+# Redirections
+# Note: Netlify gère automatiquement les fichiers HTML comme pages
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/vitrine"
+  to = "/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/accueil"
+  to = "/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/home"
+  to = "/index.html"
+  status = 301
+
+# Redirections pour l'ancienne vitrine (backward compatibility)
+[[redirects]]
+  from = "/vitrine-old"
+  to = "/vitrine-old.html"
+  status = 200
+
+# Redirections API (si nécessaire)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Headers de sécurité
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    
+    # Cache statique
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Configuration pour les Single Page Apps (optionnel)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+  conditions = {Language = ["en"], Country = ["US"]}
+
+# Configuration pour les erreurs
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+# Note: Pour déployer, uploader ce fichier avec le dossier "WEB_PORTAL AGTM DIGITAL ACADEMY"
+# dans Netlify Drag & Drop, ou connecter le repository GitHub.

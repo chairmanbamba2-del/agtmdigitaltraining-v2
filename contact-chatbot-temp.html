@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Conseiller - AGTM Digital Academy</title>
+    <style>
+        :root {
+            --gold: #C8960C;
+            --gold-light: #E8B84B;
+            --navy: #0A1520;
+            --navy-light: #1A2535;
+            --gold-lt: #E2D8C0;
+            --muted: #8AAAC0;
+            --success: #27AE60;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--navy);
+            color: var(--gold-lt);
+            line-height: 1.7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--gold);
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        .logo span {
+            color: var(--gold-lt);
+        }
+        h1 {
+            color: var(--gold-lt);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.8rem;
+            font-weight: 300;
+            margin-bottom: 15px;
+        }
+        .subtitle {
+            color: var(--muted);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+        
+        .contact-card {
+            background: var(--navy-light);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            border: 1px solid rgba(200, 150, 12, 0.2);
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+        
+        .contact-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        .contact-method {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius);
+            padding: 25px;
+            border: 1px solid rgba(200, 150, 12, 0.1);
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .contact-method:hover {
+            transform: translateY(-5px);
+            border-color: var(--gold);
+            background: rgba(200, 150, 12, 0.05);
+        }
+        .contact-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--gold);
+        }
+        .contact-title {
+            color: var(--gold-lt);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+        .contact-description {
+            color: var(--muted);
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        .contact-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: var(--gold);
+            color: var(--navy);
+            text-decoration: none;
+            border-radius: var(--radius);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 700;
+            transition: all 0.3s;
+            border: 2px solid var(--gold);
+        }
+        .contact-btn:hover {
+            background: transparent;
+            color: var(--gold);
+            transform: translateY(-3px);
+        }
+        
+        .status-box {
+            padding: 25px;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: var(--radius);
+            border-left: 4px solid var(--success);
+            margin: 30px 0;
+        }
+        .status-title {
+            color: var(--success);
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .back-to-vitrine {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(200, 150, 12, 0.2);
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            color: var(--gold-lt);
+            text-decoration: none;
+            border-radius: var(--radius);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 700;
+            border: 2px solid rgba(200, 150, 12, 0.3);
+            box-shadow: 0 8px 25px rgba(10, 21, 32, 0.3);
+            transition: all 0.3s;
+            min-width: 250px;
+        }
+        .back-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(10, 21, 32, 0.4);
+            background: linear-gradient(135deg, var(--navy-light) 0%, #2A3545 100%);
+            color: white;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            background: rgba(10, 21, 32, 0.8);
+            border-top: 1px solid rgba(200, 150, 12, 0.2);
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            .contact-methods {
+                grid-template-columns: 1fr;
+            }
+            .contact-card {
+                padding: 25px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="vitrine-new.html" class="logo">AGTM<span>Digital Academy</span></a>
+            <h1>💬 Contactez un conseiller</h1>
+            <p class="subtitle">
+                Notre équipe de conseillers pédagogiques est disponible pour répondre à toutes vos questions 
+                et vous orienter vers la formation qui correspond à vos objectifs.
+            </p>
+        </div>
+        
+        <div class="status-box">
+            <div class="status-title">⚠️ Page temporaire - Chatbot en configuration</div>
+            <p>Cette page de contact temporaire sera remplacée par le chatbot réel après déploiement. 
+            En attendant, vous pouvez nous contacter via les méthodes ci-dessous.</p>
+        </div>
+        
+        <div class="contact-card">
+            <h2 style="color: var(--gold-lt); font-family: 'Cormorant Garamond', serif; margin-bottom: 30px; text-align: center;">
+                Choisissez votre mode de contact préféré
+            </h2>
+            
+            <div class="contact-methods">
+                <div class="contact-method">
+                    <div class="contact-icon">📞</div>
+                    <h3 class="contact-title">Téléphone direct</h3>
+                    <p class="contact-description">
+                        Parlez directement à un conseiller pédagogique
+                    </p>
+                    <a href="tel:+22500000000" class="contact-btn">📞 Appeler maintenant</a>
+                </div>
+                
+                <div class="contact-method">
+                    <div class="contact-icon">📧</div>
+                    <h3 class="contact-title">Email détaillé</h3>
+                    <p class="contact-description">
+                        Envoyez-nous vos questions par email
+                    </p>
+                    <a href="mailto:contact@agtm-digital-academy.com" class="contact-btn">📧 Envoyer email</a>
+                </div>
+                
+                <div class="contact-method">
+                    <div class="contact-icon">💬</div>
+                    <h3 class="contact-title">WhatsApp Business</h3>
+                    <p class="contact-description">
+                        Chat instantané avec notre équipe
+                    </p>
+                    <a href="https://wa.me/22500000000" class="contact-btn" target="_blank">💬 WhatsApp</a>
+                </div>
+                
+                <div class="contact-method">
+                    <div class="contact-icon">🎯</div>
+                    <h3 class="contact-title">Test de placement</h3>
+                    <p class="contact-description">
+                        Évaluez votre niveau d'anglais gratuitement
+                    </p>
+                    <a href="dashboard.html" class="contact-btn">🎯 Commencer le test</a>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; padding: 25px; background: rgba(255,255,255,0.02); border-radius: var(--radius); border: 1px solid rgba(200,150,12,0.1);">
+                <h3 style="color: var(--gold); margin-bottom: 15px;">⏱️ Horaires de disponibilité</h3>
+                <p style="color: var(--muted); margin-bottom: 10px;">
+                    <strong>Lundi - Vendredi :</strong> 8h00 - 20h00
+                </p>
+                <p style="color: var(--muted); margin-bottom: 10px;">
+                    <strong>Samedi :</strong> 9h00 - 17h00
+                </p>
+                <p style="color: var(--muted);">
+                    <strong>Dimanche :</strong> 10h00 - 15h00
+                </p>
+            </div>
+        </div>
+        
+        <div class="back-to-vitrine">
+            <a href="vitrine-new.html" class="back-btn">
+                ← Retour à la vitrine principale
+            </a>
+            <p style="color: var(--muted); margin-top: 20px; font-size: 0.9rem;">
+                Après déploiement, cette page sera remplacée par le chatbot interactif.
+            </p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>© 2026 AGTM Digital Academy - Page de contact temporaire</p>
+        <p style="margin-top: 10px; font-size: 0.8rem;">
+            Centre de formation déclaré sous le numéro : 123456789
+        </p>
+    </div>
+</body>
+</html>

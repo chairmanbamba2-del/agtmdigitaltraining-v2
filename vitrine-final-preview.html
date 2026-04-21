@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prévisualisation Finale - Vitrine AGTM Digital Academy</title>
+    <style>
+        :root {
+            --gold: #C8960C;
+            --gold-light: #E8B84B;
+            --navy: #0A1520;
+            --navy-light: #1A2535;
+            --gold-lt: #E2D8C0;
+            --muted: #8AAAC0;
+            --success: #27AE60;
+            --success-light: #4CAF50;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.25);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+        }
+        h1, h2, h3 {
+            color: var(--navy);
+            font-family: 'Cormorant Garamond', serif;
+        }
+        h1 {
+            border-bottom: 3px solid var(--gold);
+            padding-bottom: 15px;
+            font-size: 2.8rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .preview-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: #f9f9f9;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+        }
+        
+        /* Simulation de la vitrine */
+        .vitrine-simulation {
+            background: var(--navy);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 2px solid var(--gold);
+            margin: 30px 0;
+        }
+        .vitrine-header {
+            background: rgba(10, 21, 32, 0.95);
+            padding: 20px;
+            border-bottom: 1px solid rgba(200, 150, 12, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .vitrine-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .vitrine-logo span {
+            color: white;
+        }
+        .vitrine-nav {
+            display: flex;
+            gap: 30px;
+        }
+        .vitrine-nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .vitrine-nav a:hover {
+            color: var(--gold);
+        }
+        .vitrine-cta {
+            display: flex;
+            gap: 15px;
+        }
+        
+        /* Boutons de simulation */
+        .btn-sim {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 700;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        .btn-chatbot-sim {
+            background: linear-gradient(135deg, #27AE60 0%, #4CAF50 100%);
+            color: white;
+            border: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        .btn-test-sim {
+            background: linear-gradient(135deg, var(--gold) 0%, #E8B84B 100%);
+            color: var(--navy);
+            border: 2px solid rgba(200, 150, 12, 0.4);
+        }
+        .btn-inscription-sim {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            color: var(--gold-lt);
+            border: 2px solid rgba(200, 150, 12, 0.3);
+        }
+        
+        .vitrine-hero {
+            padding: 60px 40px;
+            background: linear-gradient(135deg, var(--navy) 0%, #0F1E2E 100%);
+            text-align: center;
+        }
+        .hero-title-sim {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5rem;
+            font-weight: 300;
+            color: white;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+        .hero-title-sim span {
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .hero-description-sim {
+            color: var(--gold-lt);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
+        }
+        .hero-actions-sim {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-lg-sim {
+            padding: 16px 32px;
+            font-size: 0.9rem;
+            min-width: 220px;
+        }
+        
+        /* Typographie améliorée */
+        .typography-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        .typography-card {
+            padding: 25px;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+            box-shadow: var(--shadow);
+        }
+        .typography-sample {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .typography-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        /* Améliorations spécifiques */
+        .improvements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        .improvement-card {
+            padding: 25px;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+            transition: all 0.3s;
+        }
+        .improvement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--gold);
+        }
+        .improvement-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--gold);
+        }
+        
+        /* Status */
+        .status-box {
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        .status-success {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27AE60;
+            border-left-color: #27AE60;
+        }
+        .status-warning {
+            background: rgba(200, 150, 12, 0.1);
+            color: var(--gold);
+            border-left-color: var(--gold);
+        }
+        .status-info {
+            background: rgba(10, 21, 32, 0.1);
+            color: var(--navy);
+            border-left-color: var(--navy);
+        }
+        
+        /* Liens */
+        .links-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        .link-card {
+            flex: 1;
+            min-width: 200px;
+            padding: 25px;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+            text-align: center;
+            text-decoration: none;
+            color: var(--navy);
+            transition: all 0.3s;
+        }
+        .link-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--gold);
+        }
+        .link-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--gold);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .vitrine-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .vitrine-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+            .vitrine-cta {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .hero-title-sim {
+                font-size: 2.5rem;
+            }
+            .hero-actions-sim {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn-sim {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Prévisualisation Finale - Vitrine AGTM Digital Academy</h1>
+        <h2 style="color: var(--gold); margin-bottom: 40px;">Avec typographie améliorée et liens chatbot temporaires</h2>
+        
+        <div class="status-box status-success">
+            <strong>✅ PRÊT POUR DÉPLOIEMENT :</strong> Tous les liens fonctionnels, typographie améliorée, chatbot temporaire configuré
+        </div>
+        
+        <div class="preview-section">
+            <h2>🏢 Simulation de la Nouvelle Vitrine</h2>
+            <p>Voici une simulation de l'apparence de la nouvelle vitrine avec les améliorations de typographie :</p>
+            
+            <div class="vitrine-simulation">
+                <!-- Header -->
+                <div class="vitrine-header">
+                    <div class="vitrine-logo">AGTM<span>Digital Academy</span></div>
+                    
+                    <div class="vitrine-nav">
+                        <a href="#formations">Formations</a>
+                        <a href="#avantages">Avantages</a>
+                        <a href="#tarifs">Tarifs</a>
+                        <a href="#assistant-ia">Assistant IA</a>
+                        <a href="#temoignages">Témoignages</a>
+                    </div>
+                    
+                    <div class="vitrine-cta">
+                        <a href="contact-chatbot-temp.html" class="btn-sim btn-chatbot-sim">💬 Conseiller</a>
+                        <a href="dashboard.html?marketing=1" class="btn-sim btn-test-sim">📚 Brochure</a>
+                        <a href="dashboard.html" class="btn-sim btn-inscription-sim">🔑 Espace</a>
+                    </div>
+                </div>
+                
+                <!-- Hero Section -->
+                <div class="vitrine-hero">
+                    <h1 class="hero-title-sim">Maîtrisez l'anglais avec <span>AGTM Digital Academy</span></h1>
+                    <p class="hero-description-sim">
+                        Formations sur mesure adaptées à vos objectifs professionnels et académiques. 
+                        Pédagogie innovante combinant expertise humaine et intelligence artificielle.
+                    </p>
+                    
+                    <div class="hero-actions-sim">
+                        <a href="contact-chatbot-temp.html" class="btn-sim btn-chatbot-sim btn-lg-sim">💬 Parler à un conseiller</a>
+                        <a href="dashboard.html" class="btn-sim btn-test-sim btn-lg-sim">🎯 Test de placement gratuit</a>
+                        <a href="inscription.html" class="btn-sim btn-inscription-sim btn-lg-sim">📝 S'inscrire maintenant</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="vitrine-new.html" class="btn-sim btn-chatbot-sim" style="min-width: 250px; padding: 15px 30px; font-size: 0.9rem;">
+                    👁️ Voir la vitrine complète
+                </a>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>🔤 Améliorations de Typographie</h2>
+            <p>Les tailles de police et couleurs ont été optimisées pour une meilleure lisibilité :</p>
+            
+            <div class="typography-demo">
+                <div class="typography-card">
+                    <div class="typography-sample">
+                        <div class="typography-label">Titre principal (Hero)</div>
+                        <div style="font-family: 'Cormorant Garamond', serif; font-size: 3.5rem; font-weight: 300; color: var(--navy); line-height: 1.1;">
+                            Maîtrisez l'anglais
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                            <strong>Avant :</strong> 3.0rem → <strong>Après :</strong> 3.5rem (+15%)
+                        </div>
+                    </div>
+                    
+                    <div class="typography-sample">
+                        <div class="typography-label">Titres de section</div>
+                        <div style="font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 300; color: var(--navy);">
+                            Nos formations
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                            <strong>Avant :</strong> 2.5rem → <strong>Après :</strong> 3.0rem (+20%)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="typography-card">
+                    <div class="typography-sample">
+                        <div class="typography-label">Texte corps</div>
+                        <div style="font-size: 1.1rem; color: #333; line-height: 1.8;">
+                            Formations sur mesure adaptées à vos objectifs professionnels et académiques. Pédagogie innovante combinant expertise humaine et intelligence artificielle.
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                            <strong>Avant :</strong> 1.0rem → <strong>Après :</strong> 1.1rem (+10%)<br>
+                            <strong>Line-height :</strong> 1.6 → 1.8
+                        </div>
+                    </div>
+                    
+                    <div class="typography-sample">
+                        <div class="typography-label">Couleurs texte</div>
+                        <div style="display: flex; gap: 15px; margin-top: 15px;">
+                            <div>
+                                <div style="width: 40px; height: 40px; background: #FFFFFF; border: 1px solid #ddd; border-radius: 6px;"></div>
+                                <div style="font-size: 0.8rem; margin-top: 5px;">Avant</div>
+                            </div>
+                            <div>
+                                <div style="width: 40px; height: 40px; background: #E2D8C0; border: 1px solid #ddd; border-radius: 6px;"></div>
+                                <div style="font-size: 0.8rem; margin-top: 5px;">Après</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                            <strong>Amélioration :</strong> Meilleur contraste pour lisibilité
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="typography-card">
+                    <div class="typography-sample">
+                        <div class="typography-label">Boutons premium</div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                            <a href="#" class="btn-sim btn-chatbot-sim" style="min-width: 120px;">💬 Chatbot</a>
+                            <a href="#" class="btn-sim btn-test-sim" style="min-width: 120px;">🎯 Test</a>
+                            <a href="#" class="btn-sim btn-inscription-sim" style="min-width: 120px;">📝 Inscription</a>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                            <strong>Taille police :</strong> 0.85rem → 0.95rem (+12%)<br>
+                            <strong>Padding :</strong> 16px 32px → 18px 36px
+                        </div>
+                    </div>
+                    
+                    <div class="typography-sample">
+                        <div class="typography-label">Sous-titres</div>
+                        <div style="font-size: 1.2rem; color: rgba(51, 51, 51, 0.85); line-height: 1.8; margin-top: 10px;">
+                            Découvrez nos 6 programmes spécialisés conçus pour atteindre vos objectifs linguistiques
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                            <strong>Avant :</strong> 1.1rem → <strong>Après :</strong> 1.2rem (+9%)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>🎯 Améliorations Spécifiques</h2>
+            
+            <div class="improvements-grid">
+                <div class="improvement-card">
+                    <div class="improvement-icon">🔤</div>
+                    <h3>Typographie</h3>
+                    <ul style="color: #666; padding-left: 20px;">
+                        <li>Tailles police augmentées</li>
+                        <li>Meilleur contraste couleurs</li>
+                        <li>Line-height optimisé (1.7)</li>
+                        <li>Polices hiérarchisées</li>
+                    </ul>
+                </div>
+                
+                <div class="improvement-card">
+                    <div class="improvement-icon">💬</div>
+                    <h3>Chatbot Temporaire</h3>
+                    <ul style="color: #666; padding-left: 20px;">
+                        <li>Page de contact créée</li>
+                        <li>Liens mis à jour</li>
+                        <li>Multiples options de contact</li>
+                        <li>Remplacement facile post-déploiement</li>
+                    </ul>
+                </div>
+                
+                <div class="improvement-card">
+                    <div class="improvement-icon">🚀</div>
+                    <h3>Performance</h3>
+                    <ul style="color: #666; padding-left: 20px;">
+                        <li>CSS optimisé inline</li>
+                        <li>Pas d'images lourdes</li>
+                        <li>JavaScript minimal</li>
+                        <li>Chargement rapide</li>
+                    </ul>
+                </div>
+                
+                <div class="improvement-card">
+                    <div class="improvement-icon">📱</div>
+                    <h3>Responsive</h3>
+                    <ul style="color: #666; padding-left: 20px;">
+                        <li>Mobile-first design</li>
+                        <li>Media queries optimisées</li>
+                        <li>Boutons adaptatifs</li>
+                        <li>Grilles flexibles</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>🔗 Liens Fonctionnels</h2>
+            <p>Tous les liens ont été testés et sont fonctionnels :</p>
+            
+            <div class="links-grid">
+                <a href="vitrine-new.html" class="link-card">
+                    <div class="link-icon">🏠</div>
+                    <h3>Nouvelle Vitrine</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Page principale avec design amélioré</p>
+                </a>
+                
+                <a href="contact-chatbot-temp.html" class="link-card">
+                    <div class="link-icon">💬</div>
+                    <h3>Chatbot Temporaire</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Page de contact en attendant le chatbot</p>
+                </a>
+                
+                <a href="dashboard.html" class="link-card">
+                    <div class="link-icon">🎯</div>
+                    <h3>Test de Placement</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Espace apprenant et marketing</p>
+                </a>
+                
+                <a href="inscription.html" class="link-card">
+                    <div class="link-icon">📝</div>
+                    <h3>Formulaire Inscription</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Formulaire existant (888 lignes)</p>
+                </a>
+            </div>
+            
+            <div class="status-box status-info">
+                <strong>📋 Flux d'inscription validé :</strong> 
+                <ol style="margin: 10px 0 0 20px; color: #666;">
+                    <li><strong>Chatbot temporaire</strong> → Page de contact avec multiples options</li>
+                    <li><strong>Test de placement</strong> → dashboard.html avec évaluation niveau</li>
+                    <li><strong>Formulaire inscription</strong> → inscription.html avec intégration Supabase</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>✅ Checklist Finale</h2>
+            
+            <div style="background: #f0f0f0; padding: 25px; border-radius: var(--radius);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div>
+                        <h4 style="color: var(--navy); margin-bottom: 15px;">🎨 Design & UX</h4>
+                        <ul style="color: #666;">
+                            <li>✅ Typographie améliorée (tailles + couleurs)</li>
+                            <li>✅ Boutons premium avec animations</li>
+                            <li>✅ Responsive mobile optimisé</li>
+                            <li>✅ Accessibilité vérifiée</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--navy); margin-bottom: 15px;">🔗 Intégrations</h4>
+                        <ul style="color: #666;">
+                            <li>✅ Chatbot temporaire configuré</li>
+                            <li>✅ Liens dashboard fonctionnels</li>
+                            <li>✅ Formulaire inscription prêt</li>
+                            <li>✅ Backup ancienne version</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--navy); margin-bottom: 15px;">🚀 Déploiement</h4>
+                        <ul style="color: #666;">
+                            <li>✅ Configuration Netlify prête</li>
+                            <li>✅ Guide déploiement créé</li>
+                            <li>✅ Rollback plan préparé</li>
+                            <li>✅ Documentation complète</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-box status-success" style="margin-top: 30px;">
+                <strong>🎯 STATUT FINAL :</strong> La nouvelle vitrine AGTM Digital Academy est <strong>PRÊTE POUR DÉPLOIEMENT</strong> sur Netlify.
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 50px; padding: 40px; background: linear-gradient(135deg, rgba(200, 150, 12, 0.1) 0%, rgba(10, 21, 32, 0.1) 100%); border-radius: var(--radius-lg); border: 2px solid var(--gold);">
+            <h2 style="color: var(--gold); margin-bottom: 20px;">👁️ Voir la Vitrine Finale</h2>
+            <p style="color: #666; margin-bottom: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                La nouvelle vitrine avec typographie améliorée, boutons premium et flux d'inscription complet est prête.
+                Cliquez sur le lien ci-dessous pour voir la version finale.
+            </p>
+            
+            <div style="display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin: 40px 0;">
+                <a href="vitrine-new.html" class="btn-sim btn-chatbot-sim" style="padding: 18px 40px; font-size: 1rem; min-width: 280px;">
+                    🏠 Voir la vitrine finale
+                </a>
+                <a href="preview-integration-dashboard.html" class="btn-sim btn-test-sim" style="padding: 18px 40px; font-size: 1rem; min-width: 280px;">
+                    🔗 Voir intégration dashboard
+                </a>
+            </div>
+            
+            <div class="status-box status-warning" style="max-width: 800px; margin: 30px auto 0;">
+                <strong>⚠️ Note importante :</strong> Après déploiement, la page de contact temporaire sera remplacée par le chatbot réel déjà configuré.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prévisualisation Modifications Flux Inscription</title>
+    <style>
+        :root {
+            --gold: #C8960C;
+            --navy: #0A1520;
+            --gold-lt: #E2D8C0;
+            --muted: #8AAAC0;
+        }
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: var(--navy);
+        }
+        h1 {
+            border-bottom: 3px solid var(--gold);
+            padding-bottom: 10px;
+        }
+        .preview-section {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .flow-diagram {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .flow-step {
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+            margin: 10px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid var(--gold);
+            position: relative;
+        }
+        .flow-step-number {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            background: var(--gold);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .flow-arrow {
+            font-size: 24px;
+            color: var(--gold);
+            margin: 0 10px;
+        }
+        .btn-preview {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px 5px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-chatbot {
+            background: #4CAF50;
+            color: white;
+            border: 2px solid #45a049;
+        }
+        .btn-placement {
+            background: var(--gold);
+            color: var(--navy);
+            border: 2px solid var(--gold);
+        }
+        .btn-inscription {
+            background: var(--navy);
+            color: white;
+            border: 2px solid var(--navy);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--navy);
+            border: 2px solid var(--navy);
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        .comparison-box {
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .current {
+            border: 2px solid #ff9800;
+            background: #fff3e0;
+        }
+        .new {
+            border: 2px solid #4CAF50;
+            background: #e8f5e8;
+        }
+        .status {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+        }
+        .status-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .code-preview {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .locations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .location-card {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        @media (max-width: 768px) {
+            .comparison, .flow-diagram {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Prévisualisation Modifications Flux Inscription</h1>
+        
+        <div class="status status-info">
+            <strong>📋 Objectif :</strong> Intégrer le nouveau flux utilisateur : Chatbot → Test de placement → Inscription
+        </div>
+        
+        <div class="status status-success">
+            <strong>✅ Validation :</strong> Formulaire d'inscription existant détecté (<code>inscription.html</code>)
+        </div>
+        
+        <h2>🔄 Nouveau Flux Utilisateur</h2>
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <div class="flow-step-number">1</div>
+                <h3>💬 Chatbot Conseiller</h3>
+                <p>Premier contact pour orientation et questions</p>
+                <a href="#" class="btn-preview btn-chatbot">💬 Parler à un conseiller</a>
+            </div>
+            
+            <div class="flow-arrow">→</div>
+            
+            <div class="flow-step">
+                <div class="flow-step-number">2</div>
+                <h3>🎯 Test de Placement</h3>
+                <p>Évaluation du niveau (étape obligatoire)</p>
+                <a href="dashboard.html" class="btn-preview btn-placement">🎯 Test de placement gratuit</a>
+            </div>
+            
+            <div class="flow-arrow">→</div>
+            
+            <div class="flow-step">
+                <div class="flow-step-number">3</div>
+                <h3>📝 Formulaire d'Inscription</h3>
+                <p>Inscription finale après test</p>
+                <a href="inscription.html" class="btn-preview btn-inscription">📝 S'inscrire maintenant</a>
+            </div>
+        </div>
+        
+        <h2>📊 Comparaison Avant/Après</h2>
+        <div class="comparison">
+            <div class="comparison-box current">
+                <h3>🔄 Actuel (À Modifier)</h3>
+                <p><strong>CTA Hero Section :</strong></p>
+                <div style="margin: 15px 0;">
+                    <a href="#formations" class="btn-preview btn-placement">📚 Découvrir nos formations</a><br>
+                    <a href="#cta" class="btn-preview btn-secondary">📞 Séance découverte gratuite</a><br>
+                    <a href="dashboard.html?marketing=1" class="btn-preview btn-secondary">📋 Télécharger brochure</a>
+                </div>
+                
+                <p><strong>CTA Final Section :</strong></p>
+                <div style="margin: 15px 0;">
+                    <a href="dashboard.html" class="btn-preview btn-placement">🎯 Test de placement gratuit</a><br>
+                    <a href="dashboard.html?marketing=1" class="btn-preview btn-secondary">📚 Télécharger brochure complète</a><br>
+                    <a href="dashboard.html" class="btn-preview btn-secondary">📞 Séance découverte gratuite</a>
+                </div>
+                
+                <p><strong>Cartes Formations :</strong></p>
+                <div style="margin: 15px 0;">
+                    <a href="dashboard.html" class="btn-preview btn-placement">S'inscrire</a>
+                    <p><em>(Redirige vers dashboard, pas vers inscription directe)</em></p>
+                </div>
+            </div>
+            
+            <div class="comparison-box new">
+                <h3>🚀 Nouveau (Proposé)</h3>
+                <p><strong>CTA Hero Section :</strong></p>
+                <div style="margin: 15px 0;">
+                    <a href="#" class="btn-preview btn-chatbot">💬 Parler à un conseiller</a><br>
+                    <a href="dashboard.html" class="btn-preview btn-placement">🎯 Test de placement gratuit</a><br>
+                    <a href="inscription.html" class="btn-preview btn-inscription">📝 S'inscrire maintenant</a>
+                </div>
+                
+                <p><strong>CTA Final Section :</strong></p>
+                <div style="margin: 15px 0;">
+                    <a href="#" class="btn-preview btn-chatbot">💬 Parler à un conseiller</a><br>
+                    <a href="dashboard.html" class="btn-preview btn-placement">🎯 Test de placement gratuit</a><br>
+                    <a href="inscription.html" class="btn-preview btn-inscription">📝 S'inscrire maintenant</a>
+                </div>
+                
+                <p><strong>Cartes Formations :</strong></p>
+                <div style="margin: 15px 0;">
+                    <a href="dashboard.html" class="btn-preview btn-placement">🎯 Test de placement</a><br>
+                    <a href="inscription.html" class="btn-preview btn-inscription">📝 S'inscrire</a>
+                    <p><em>(Deux boutons : test OU inscription directe)</em></p>
+                </div>
+            </div>
+        </div>
+        
+        <h2>📍 Emplacements des Modifications</h2>
+        <div class="locations">
+            <div class="location-card">
+                <h3>1. Navigation (Header)</h3>
+                <p><strong>Actuel :</strong> Brochure + Espace Apprenant</p>
+                <p><strong>Nouveau :</strong> Ajouter "💬 Conseiller"</p>
+                <div class="code-preview">
+&lt;div class="nav-cta"&gt;<br>
+&nbsp;&nbsp;&lt;a href="#" class="btn btn-chatbot"&gt;💬 Conseiller&lt;/a&gt;<br>
+&nbsp;&nbsp;&lt;a href="dashboard.html?marketing=1" class="btn btn-secondary"&gt;📚 Brochure&lt;/a&gt;<br>
+&nbsp;&nbsp;&lt;a href="dashboard.html" class="btn btn-primary"&gt;🔑 Espace Apprenant&lt;/a&gt;<br>
+&lt;/div&gt;
+                </div>
+            </div>
+            
+            <div class="location-card">
+                <h3>2. Hero Section</h3>
+                <p><strong>Actuel :</strong> 3 boutons (formations, séance, brochure)</p>
+                <p><strong>Nouveau :</strong> 3 boutons (chatbot, test, inscription)</p>
+                <div class="code-preview">
+&lt;div class="hero-actions"&gt;<br>
+&nbsp;&nbsp;&lt;a href="#" class="btn btn-chatbot"&gt;💬 Parler à un conseiller&lt;/a&gt;<br>
+&nbsp;&nbsp;&lt;a href="dashboard.html" class="btn btn-primary"&gt;🎯 Test de placement gratuit&lt;/a&gt;<br>
+&nbsp;&nbsp;&lt;a href="inscription.html" class="btn btn-inscription"&gt;📝 S'inscrire maintenant&lt;/a&gt;<br>
+&lt;/div&gt;
+                </div>
+            </div>
+            
+            <div class="location-card">
+                <h3>3. Cartes Formations</h3>
+                <p><strong>Actuel :</strong> 1 bouton "S'inscrire" (vers dashboard)</p>
+                <p><strong>Nouveau :</strong> 2 boutons (test + inscription)</p>
+                <div class="code-preview">
+&lt;div class="program-actions"&gt;<br>
+&nbsp;&nbsp;&lt;a href="dashboard.html" class="btn btn-primary"&gt;🎯 Test de placement&lt;/a&gt;<br>
+&nbsp;&nbsp;&lt;a href="inscription.html" class="btn btn-inscription"&gt;📝 S'inscrire&lt;/a&gt;<br>
+&lt;/div&gt;
+                </div>
+            </div>
+            
+            <div class="location-card">
+                <h3>4. CTA Final</h3>
+                <p><strong>Actuel :</strong> 3 boutons (test, brochure, séance)</p>
+                <p><strong>Nouveau :</strong> 3 boutons (chatbot, test, inscription)</p>
+                <div class="code-preview">
+&lt;div class="cta-actions"&gt;<br>
+&nbsp;&nbsp;&lt;a href="#" class="btn btn-chatbot btn-lg"&gt;💬 Parler à un conseiller&lt;/a&gt;<br>
+&nbsp;&nbsp;&lt;a href="dashboard.html" class="btn btn-primary btn-lg"&gt;🎯 Test de placement gratuit&lt;/a&gt;<br>
+&nbsp;&nbsp;&lt;a href="inscription.html" class="btn btn-inscription btn-lg"&gt;📝 S'inscrire maintenant&lt;/a&gt;<br>
+&lt;/div&gt;
+                </div>
+            </div>
+        </div>
+        
+        <h2>🎨 Nouveaux Styles à Ajouter</h2>
+        <div class="code-preview">
+/* ===== NOUVEAUX BOUTONS ===== */<br>
+.btn-chatbot {<br>
+&nbsp;&nbsp;background: #4CAF50;<br>
+&nbsp;&nbsp;color: white;<br>
+&nbsp;&nbsp;border: 1px solid #45a049;<br>
+}<br>
+<br>
+.btn-chatbot:hover {<br>
+&nbsp;&nbsp;background: #45a049;<br>
+&nbsp;&nbsp;transform: translateY(-2px);<br>
+&nbsp;&nbsp;box-shadow: var(--shadow);<br>
+}<br>
+<br>
+.btn-inscription {<br>
+&nbsp;&nbsp;background: var(--navy);<br>
+&nbsp;&nbsp;color: white;<br>
+&nbsp;&nbsp;border: 1px solid var(--navy);<br>
+}<br>
+<br>
+.btn-inscription:hover {<br>
+&nbsp;&nbsp;background: #1A2535;<br>
+&nbsp;&nbsp;transform: translateY(-2px);<br>
+&nbsp;&nbsp;box-shadow: var(--shadow);<br>
+}<br>
+<br>
+/* ===== PROGRAM CARD ACTIONS ===== */<br>
+.program-actions {<br>
+&nbsp;&nbsp;display: flex;<br>
+&nbsp;&nbsp;gap: 10px;<br>
+&nbsp;&nbsp;margin-top: 20px;<br>
+}<br>
+<br>
+@media (max-width: 768px) {<br>
+&nbsp;&nbsp;.program-actions {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;flex-direction: column;<br>
+&nbsp;&nbsp;}<br>
+}
+        </div>
+        
+        <h2>🔗 Liens à Intégrer</h2>
+        <ul>
+            <li><strong>Chatbot :</strong> <code>#</code> (à remplacer par lien réel du chatbot)</li>
+            <li><strong>Test de placement :</strong> <code>dashboard.html</code> (existant)</li>
+            <li><strong>Formulaire d'inscription :</strong> <code>inscription.html</code> (existant - 888 lignes)</li>
+            <li><strong>Brochure marketing :</strong> <code>dashboard.html?marketing=1</code> (conservé dans navigation)</li>
+        </ul>
+        
+        <h2>✅ Points de Validation</h2>
+        <ol>
+            <li>Flux logique : Chatbot → Test → Inscription</li>
+            <li>Test de placement reste première étape obligatoire</li>
+            <li>Formulaire d'inscription accessible directement</li>
+            <li>Design cohérent avec charte graphique AGTM</li>
+            <li>Responsive sur tous les appareils</li>
+            <li>Pas de rupture dans l'expérience utilisateur</li>
+        </ol>
+        
+        <div style="margin-top: 40px; padding: 20px; background: #e8f5e8; border-radius: 8px; border: 2px solid #4CAF50;">
+            <h3>🚀 Prochaines Étapes</h3>
+            <p><strong>Après validation de cette prévisualisation :</strong></p>
+            <ol>
+                <li>Intégrer les modifications dans <code>vitrine-new.html</code></li>
+                <li>Tester tous les liens (chatbot, test, inscription)</li>
+                <li>Vérifier le responsive design</li>
+                <li>Valider avec test utilisateur</li>
+                <li>Remplacer <code>vitrine.html</code> par la nouvelle version</li>
+            </ol>
+            <p><strong>Question :</strong> Avez-vous un lien spécifique pour le chatbot ou dois-je créer une page de contact temporaire ?</p>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <h3>📋 Validation Requise</h3>
+            <p>Veuillez valider cette prévisualisation avant que j'intègre les modifications dans la vitrine.</p>
+            <p><strong>Statut :</strong> ⏳ En attente de validation</p>
+        </div>
+    </div>
+</body>
+</html>

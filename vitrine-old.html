@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>AGTM Digital Academy — Plateforme EdTech · Abidjan</title>
+  <meta name="description" content="AGTM Digital Academy — Plateforme numérique tout-en-un pour la gestion pédagogique et administrative. 33+ modules, 4 rôles, 100% cloud. Abidjan, Côte d'Ivoire."/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#C8960C"/>
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml"/>
+  <link rel="apple-touch-icon" href="/icons/icon.svg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,600&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--gold:var(--agtm-gold);--gold-lt:var(--agtm-gold-lt);--blue:var(--agtm-blue);--green:var(--agtm-success);--navy:var(--agtm-navy);--navy-mid:var(--agtm-card);--text:var(--agtm-white);--muted:var(--agtm-muted);--border:rgba(232,148,26,0.2)}
+    html{font-size:18px;scroll-behavior:smooth}
+    body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--agtm-dark);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    @keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(232,148,26,0.5)}70%{box-shadow:0 0 0 10px rgba(232,148,26,0)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+    @keyframes countUp{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+    @keyframes glow{0%,100%{text-shadow:0 0 8px rgba(232,148,26,0.4)}50%{text-shadow:0 0 22px rgba(232,148,26,0.9),0 0 40px rgba(232,148,26,0.4)}}
+    .animate-in{animation:fadeInUp .55s ease both}
+    .float-anim{animation:float 3.5s ease-in-out infinite}
+    .pulse-btn{animation:pulse-gold 2s infinite}
+    .glow-text{animation:glow 2.5s ease-in-out infinite}
+    .shimmer-bg{background:linear-gradient(90deg,var(--gold) 0%,var(--gold-lt) 50%,var(--gold) 100%);background-size:200%;animation:shimmer 2.5s linear infinite}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#09111E}::-webkit-scrollbar-thumb{background:#2A3F58;border-radius:3px}
+
+    /* NAV */
+    nav{position:sticky;top:0;z-index:200;background:rgba(9,17,30,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 max(4vw,env(safe-area-inset-right)) 0 max(4vw,env(safe-area-inset-left));padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:space-between;min-height:56px;gap:16px}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+    .logo-badge{width:34px;height:34px;background:linear-gradient(135deg,#C8960C,#E8B84B);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.75rem;color:#0D1B2A;letter-spacing:-.02em}
+    .logo-text{font-weight:800;font-size:1rem;color:var(--gold-lt);white-space:nowrap}
+    .nav-links{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:.82rem;font-weight:600;padding:5px 10px;border-radius:6px;transition:all .15s;white-space:nowrap}
+    .nav-links a:hover{color:var(--gold);background:rgba(232,148,26,0.08)}
+    .btn-nav{padding:8px 20px;border-radius:8px;background:var(--gold);color:#0D1B2A;font-weight:800;font-size:.85rem;text-decoration:none;transition:all .2s;white-space:nowrap;flex-shrink:0;cursor:pointer;border:none}
+    .btn-nav:hover{opacity:.85}
+
+    /* TABS */
+    .tabs-bar{display:flex;gap:4px;padding:10px 4vw;background:#060D1A;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}
+    .tabs-bar::-webkit-scrollbar{display:none}
+    .tab-btn{padding:8px 17px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;border:1px solid transparent;white-space:nowrap;transition:all .15s;color:var(--muted);background:transparent}
+    .tab-btn.active{background:var(--gold);color:#0D1B2A;border-color:var(--gold)}
+    .tab-btn:hover:not(.active){background:rgba(232,148,26,0.1);color:var(--gold-lt);border-color:rgba(232,148,26,0.3)}
+
+    /* SECTIONS */
+    .section{display:none;padding:28px 4vw 36px;max-width:1200px;margin:0 auto}
+    .section.active{display:block}
+    .sec-title{font-size:1.5rem;font-weight:900;color:#fff;margin-bottom:6px}
+    .sec-sub{font-size:.9rem;color:var(--muted);margin-bottom:22px;line-height:1.7}
+
+    /* HERO COMPACT */
+    .hero{background:linear-gradient(135deg,#09111E 0%,#160E04 50%,#0B1A2E 100%);border-bottom:1px solid var(--border);padding:36px 4vw 30px;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(232,148,26,0.06) 0%,transparent 60%);pointer-events:none}
+    .hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:36px;align-items:center}
+    .hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(232,148,26,.12);border:1px solid rgba(232,148,26,.4);border-radius:20px;padding:5px 16px;font-size:.74rem;font-weight:800;color:var(--gold);letter-spacing:.07em;margin-bottom:12px;animation:pulse-gold 3s infinite}
+    .hero-title{font-size:2.5rem;font-weight:900;color:#fff;line-height:1.12;margin-bottom:10px}
+    .hero-title span{color:var(--gold-lt);animation:glow 2.5s ease-in-out infinite}
+    .hero-sub{font-size:.98rem;color:var(--muted);line-height:1.75;margin-bottom:18px;max-width:520px}
+    .hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+    .btn-primary{padding:12px 28px;border-radius:10px;background:var(--gold);border:none;color:#0D1B2A;font-weight:800;font-size:.88rem;cursor:pointer;text-decoration:none;transition:all .2s;display:inline-block;letter-spacing:.01em}
+    .btn-primary:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 6px 20px rgba(232,148,26,.4)}
+    .btn-outline{padding:12px 28px;border-radius:10px;background:transparent;border:2px solid var(--gold);color:var(--gold);font-weight:800;font-size:.88rem;cursor:pointer;text-decoration:none;transition:all .2s;display:inline-block}
+    .btn-outline:hover{background:rgba(232,148,26,.12);transform:translateY(-2px)}
+    .hero-stats{display:flex;gap:20px;flex-shrink:0;flex-wrap:wrap}
+    .stat{text-align:center;background:rgba(232,148,26,.07);border:1px solid rgba(232,148,26,.25);border-radius:14px;padding:14px 20px;min-width:86px;transition:transform .2s,border-color .2s;animation:float 4s ease-in-out infinite}
+    .stat:nth-child(2){animation-delay:.5s}
+    .stat:nth-child(3){animation-delay:1s}
+    .stat:nth-child(4){animation-delay:1.5s}
+    .stat:hover{transform:translateY(-4px)!important;border-color:rgba(232,148,26,.6)}
+    .stat-num{font-size:1.9rem;font-weight:900;color:var(--gold)}
+    .stat-lbl{font-size:.66rem;color:var(--muted);margin-top:3px;line-height:1.3;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+
+    /* GRIDS */
+    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+    .grid-6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+
+    /* CARDS */
+    .card{background:linear-gradient(135deg,#10203A,#1C1408);border:1px solid rgba(232,148,26,.15);border-radius:14px;padding:22px;transition:border-color .2s,transform .22s,box-shadow .22s}
+    .card:hover{border-color:rgba(232,148,26,.5);transform:translateY(-4px);box-shadow:0 8px 28px rgba(232,148,26,.12)}
+    .card-icon{font-size:2rem;margin-bottom:12px}
+    .card-title{font-size:.98rem;font-weight:800;color:#fff;margin-bottom:7px}
+    .card-desc{font-size:.82rem;color:var(--muted);line-height:1.7}
+    .pill-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+    .pill{padding:2px 8px;border-radius:8px;font-size:.66rem;font-weight:700;background:rgba(27,79,138,.12);color:var(--blue);border:1px solid rgba(27,79,138,.2)}
+
+    /* ROLE CARDS */
+    .role-card{background:linear-gradient(135deg,#10203A,#1C1408);border-radius:14px;padding:20px 18px;text-align:center;border:1px solid rgba(232,148,26,.15);transition:transform .22s,box-shadow .22s}
+    .role-card:hover{transform:translateY(-5px);box-shadow:0 10px 32px rgba(0,0,0,.4)}
+    .role-icon{font-size:2.5rem;margin-bottom:12px}
+    .role-name{font-size:1rem;font-weight:800;margin-bottom:7px}
+    .role-desc{font-size:.8rem;color:var(--muted);line-height:1.7;margin-bottom:14px}
+    .role-mod{font-size:.78rem;color:#A8C0D8;padding:4px 0;border-bottom:1px solid rgba(200,150,12,.08);display:flex;align-items:center;gap:5px;text-align:left}
+    .role-mod::before{content:'›';color:var(--gold);font-weight:900}
+
+    /* MODULE MINI CARDS */
+    .mod-card{background:rgba(200,150,12,.05);border:1px solid rgba(200,150,12,.18);border-radius:10px;padding:10px 12px;text-align:center;font-size:.74rem;color:var(--text);font-weight:600;line-height:1.4;transition:all .18s;cursor:default}
+    .mod-card:hover{background:rgba(200,150,12,.15);border-color:rgba(200,150,12,.4);transform:scale(1.04)}
+    .mod-icon{font-size:1.2rem;margin-bottom:5px;display:block}
+
+    /* TECH */
+    .tech-card{background:linear-gradient(135deg,#10203A,#1C1408);border:1px solid rgba(74,144,217,.2);border-radius:12px;padding:16px;text-align:center}
+    .tech-icon{font-size:2rem;margin-bottom:8px}
+    .tech-name{font-size:.82rem;font-weight:800;color:#4A90D9;margin-bottom:4px}
+    .tech-desc{font-size:.7rem;color:var(--muted);line-height:1.5}
+
+    /* SECURITY */
+    .sec-card{background:rgba(74,144,217,.04);border:1px solid rgba(74,144,217,.18);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+    .sec-card-icon{font-size:1.4rem;flex-shrink:0;margin-top:2px}
+    .sec-card-title{font-size:.8rem;font-weight:800;color:#4A90D9;margin-bottom:3px}
+    .sec-card-desc{font-size:.72rem;color:var(--muted);line-height:1.5}
+
+    /* HIGHLIGHT ROW */
+    .highlight-row{background:linear-gradient(135deg,#0E1E34,#1C1206);border:1px solid rgba(200,150,12,.3);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+
+    /* CONTACT / CTA */
+    .cta-box{background:linear-gradient(135deg,#0E1E34,#2C2208);border:2px solid rgba(200,150,12,.4);border-radius:16px;padding:28px 32px;text-align:center;transition:border-color .2s}
+    .cta-box:hover{border-color:rgba(200,150,12,.7)}
+    .cta-title{font-size:1.5rem;font-weight:900;color:#fff;margin-bottom:10px}
+    .cta-sub{font-size:.9rem;color:var(--muted);line-height:1.7;margin-bottom:20px}
+    .cta-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .info-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+    .info-chip{display:flex;align-items:center;gap:7px;padding:8px 14px;background:rgba(200,150,12,.07);border:1px solid rgba(200,150,12,.2);border-radius:8px;font-size:.76rem;color:var(--muted)}
+    .info-chip span{color:var(--gold-lt);font-weight:700}
+
+    /* LOGIN MODAL */
+    #loginModal{display:none;position:fixed;inset:0;z-index:999;background:rgba(4,9,18,.88);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px}
+    #loginModal.open{display:flex}
+    .lm-box{background:#0E1C2E;border:1px solid rgba(200,150,12,.4);border-radius:16px;width:100%;max-width:400px;overflow:hidden}
+    .lm-head{background:#1A2D42;border-bottom:2px solid var(--gold);padding:20px 24px;display:flex;align-items:center;justify-content:space-between}
+    .lm-body{padding:24px}
+    .lm-inp{width:100%;padding:10px 13px;border-radius:8px;font-size:.88rem;outline:none;background:#0A1828;border:1.5px solid #2A3F58;color:#E2D8C0;margin-bottom:12px;transition:border-color .2s}
+    .lm-inp:focus{border-color:var(--gold)}
+    .lm-btn{width:100%;padding:11px;border-radius:9px;background:var(--gold);border:none;color:#0D1B2A;font-weight:800;font-size:.9rem;cursor:pointer;transition:opacity .2s}
+    .lm-btn:hover{opacity:.88}
+    .lm-err{color:#E04A4A;font-size:.75rem;min-height:16px;margin-bottom:8px}
+    .lm-foot{padding:12px 24px;text-align:center;font-size:.65rem;color:#3A5070;border-top:1px solid #1E3050}
+
+    /* RESPONSIVE */
+    @media(max-width:900px){
+      .grid-4,.grid-5,.grid-6{grid-template-columns:repeat(3,1fr)}
+      .grid-3{grid-template-columns:repeat(2,1fr)}
+      .hero-inner{grid-template-columns:1fr}
+      .hero-stats{justify-content:flex-start}
+      .hero-title{font-size:2rem}
+    }
+    /* HAMBURGER */
+    .hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--text);font-size:1.4rem;line-height:1;border-radius:6px;transition:background .15s}
+    .hamburger:hover{background:rgba(255,255,255,0.08)}
+    /* MOBILE DRAWER */
+    .mobile-drawer{display:none;position:fixed;inset:0;z-index:999}
+    .mobile-drawer.open{display:block}
+    .drawer-overlay{position:absolute;inset:0;background:rgba(0,0,0,.65)}
+    .drawer-panel{position:absolute;top:0;right:0;height:100%;width:min(280px,82vw);background:#0D1B2A;border-left:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;animation:slideIn .22s ease}
+    @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+    .drawer-panel a{color:var(--text);text-decoration:none;font-size:1rem;font-weight:600;padding:11px 14px;border-radius:8px;display:block;transition:background .15s}
+    .drawer-panel a:hover{background:rgba(200,150,12,0.12);color:var(--gold)}
+    .drawer-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;align-self:flex-end;margin-bottom:8px;padding:4px 8px;border-radius:6px}
+    .drawer-close:hover{color:var(--text)}
+
+    @media(max-width:600px){
+      .grid-3,.grid-4,.grid-5,.grid-6,.grid-2{grid-template-columns:repeat(2,1fr)}
+      .hero-title{font-size:1.6rem}
+      .nav-links{display:none}
+      .hamburger{display:flex;align-items:center;justify-content:center}
+      section{padding:16px 4vw}
+    }
+    @media(max-width:400px){
+      .grid-6,.grid-5{grid-template-columns:repeat(2,1fr)}
+      .hero-title{font-size:1.4rem}
+    }
+  </style>
+  <link rel="stylesheet" href="agtm-design-system.css">
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────── -->
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-badge">AGTM</div>
+    <span class="logo-text">AGTM Digital Academy</span>
+  </a>
+  <div class="nav-links">
+    <a href="#" onclick="showTab('accueil');return false">Accueil</a>
+    <a href="#" onclick="showTab('formations');return false">Formations</a>
+    <a href="#" onclick="showTab('plateforme');return false">Plateforme</a>
+    <a href="#" onclick="showTab('roles');return false">Rôles</a>
+    <a href="#" onclick="showTab('modules');return false">Modules</a>
+    <a href="#" onclick="showTab('contact');return false">Contact</a>
+  </div>
+  <button class="btn-nav pulse-btn" onclick="document.getElementById('loginModal').classList.add('open')">🔑 Se connecter</button>
+  <button class="hamburger" id="hamburgerBtn" aria-label="Menu" onclick="document.getElementById('mobileDrawer').classList.add('open')">☰</button>
+</nav>
+
+<!-- ── MOBILE DRAWER ─────────────────────────────────────────── -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-overlay" onclick="document.getElementById('mobileDrawer').classList.remove('open')"></div>
+  <div class="drawer-panel">
+    <button class="drawer-close" onclick="document.getElementById('mobileDrawer').classList.remove('open')">✕ Fermer</button>
+    <a href="#" onclick="showTab('accueil');document.getElementById('mobileDrawer').classList.remove('open');return false">🏠 Accueil</a>
+    <a href="#" onclick="showTab('formations');document.getElementById('mobileDrawer').classList.remove('open');return false">📚 Formations</a>
+    <a href="#" onclick="showTab('plateforme');document.getElementById('mobileDrawer').classList.remove('open');return false">💻 Plateforme</a>
+    <a href="#" onclick="showTab('roles');document.getElementById('mobileDrawer').classList.remove('open');return false">👥 Rôles</a>
+    <a href="#" onclick="showTab('modules');document.getElementById('mobileDrawer').classList.remove('open');return false">🧩 Modules</a>
+    <a href="#" onclick="showTab('contact');document.getElementById('mobileDrawer').classList.remove('open');return false">📞 Contact</a>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border)">
+      <button class="btn-nav pulse-btn" style="width:100%;text-align:center" onclick="document.getElementById('loginModal').classList.add('open');document.getElementById('mobileDrawer').classList.remove('open')">🔑 Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HERO COMPACT ─────────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge animate-in" style="animation-delay:.1s">✦ PLATEFORME EDTECH · ABIDJAN, CÔTE D'IVOIRE ✦</div>
+      <h1 class="hero-title animate-in" style="animation-delay:.2s">La technologie au service<br/>de <span>l'apprentissage de l'anglais</span></h1>
+      <p class="hero-sub animate-in" style="animation-delay:.35s">AGTM Digital Academy est une plateforme numérique tout-en-un pour la gestion pédagogique et administrative d'une école de langue — 100% cloud, Abidjan 🇨🇮.</p>
+      <div class="hero-btns animate-in" style="animation-delay:.5s">
+        <a href="#" onclick="showTab('formations');return false" class="btn-primary">📚 Nos Formations</a>
+        <a href="#" onclick="document.getElementById('loginModal').classList.add('open');return false" class="btn-outline">🔑 Espace Étudiant</a>
+        <a href="#" onclick="showTab('contact');return false" class="btn-outline" style="border-color:#25D366;color:#25D366">💬 Nous contacter</a>
+        <button id="pwaInstallBtn" onclick="window._pwaInstall()" style="display:inline-flex;padding:11px 22px;border-radius:10px;background:transparent;border:2px solid #4A90D9;color:#4A90D9;font-weight:800;font-size:.88rem;cursor:pointer;transition:all .2s;align-items:center;gap:8px"
+          onmouseover="this.style.background='rgba(74,144,217,.12)'" onmouseout="this.style.background='transparent'">
+          ⬇ Installer l'application
+        </button>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">33+</div><div class="stat-lbl">Modules</div></div>
+      <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Rôles</div></div>
+      <div class="stat"><div class="stat-num">A1→C1</div><div class="stat-lbl">Niveaux CECRL</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">Cloud</div></div>
+      <div class="stat" style="border-color:rgba(155,89,182,.4);background:rgba(155,89,182,.07)"><div class="stat-num" style="color:#9B59B6;font-size:1.4rem">🤖</div><div class="stat-lbl">Assistant IA</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TABS BAR ──────────────────────────────────────────────── -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="showTab('accueil')">🏠 Accueil</button>
+  <button class="tab-btn" onclick="showTab('formations')">📚 Formations</button>
+  <button class="tab-btn" onclick="showTab('plateforme')">💡 Plateforme</button>
+  <button class="tab-btn" onclick="showTab('roles')">👥 Rôles</button>
+  <button class="tab-btn" onclick="showTab('modules')">🧩 33+ Modules</button>
+  <button class="tab-btn" onclick="showTab('securite')">🔐 Sécurité</button>
+  <button class="tab-btn" onclick="showTab('contact')">📞 Contact</button>
+</div>
+
+<!-- ── TICKER MARKETING ──────────────────────────────────────── -->
+<div style="background:linear-gradient(90deg,#C8960C,#E8B84B,#C8960C);background-size:200%;animation:shimmer 3s linear infinite;padding:7px 0;overflow:hidden;white-space:nowrap">
+  <span style="display:inline-block;animation:none;color:#0D1B2A;font-size:.78rem;font-weight:800;padding:0 3vw">
+    🎓 Inscriptions ouvertes ·
+    📞 Contactez-nous dès aujourd'hui ·
+    🏆 Niveaux A1 → C1 ·
+    💻 Cours en ligne disponibles ·
+    🌍 Formateurs certifiés ·
+    🤖 Assistant IA pédagogique inclus ·
+    📊 Suivi de progression en temps réel ·
+    🎯 Préparation TOEIC &amp; TOEFL ·
+    🏅 Certificats numériques ·
+    📱 Plateforme 100% cloud ·
+    🚀 Rejoignez AGTM Digital Academy →
+  </span>
+</div>
+
+<!-- ── WRAPPER ─────────────────────────────────────────────── -->
+<div style="background:#09111E;min-height:calc(100vh - 200px)">
+
+<!-- ══════════════════════════════════════════════════════════
+     ONGLET : ACCUEIL
+════════════════════════════════════════════════════════════ -->
+<div id="tab-accueil" class="section active">
+
+  <!-- Pourquoi AGTM -->
+  <div class="highlight-row">
+    <div style="width:48px;height:48px;background:linear-gradient(135deg,#C8960C,#E8B84B);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">🎓</div>
+    <div style="flex:1">
+      <div style="font-size:.88rem;font-weight:800;color:#E8B84B;margin-bottom:3px">AGTM Digital Academy — Votre école d'anglais digitalisée</div>
+      <div style="font-size:.76rem;color:var(--muted);line-height:1.6">Gestion pédagogique complète · Suivi en temps réel · 100% en ligne · Abidjan, Côte d'Ivoire 🇨🇮</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
+      <a href="#" onclick="showTab('formations');return false" class="btn-primary" style="font-size:.76rem;padding:8px 16px">📚 Formations</a>
+      <a href="dashboard.html?marketing=1" target="_blank" class="btn-outline" style="font-size:.76rem;padding:8px 16px">📋 Brochure</a>
+    </div>
+  </div>
+
+  <!-- Grille 3 colonnes : Avantages / Technologie / Modes -->
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon">🏆</div>
+      <div class="card-title">Pourquoi AGTM ?</div>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(200,150,12,.07);display:flex;align-items:center;gap:6px">🎯 Pédagogie active et innovante</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(200,150,12,.07);display:flex;align-items:center;gap:6px">📱 100% digitalisé, zéro papier</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(200,150,12,.07);display:flex;align-items:center;gap:6px">👨‍🏫 Formateurs certifiés</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(200,150,12,.07);display:flex;align-items:center;gap:6px">🏠 Flexibilité totale (présentiel/ligne)</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(200,150,12,.07);display:flex;align-items:center;gap:6px">📊 Reporting précis en temps réel</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(200,150,12,.07);display:flex;align-items:center;gap:6px">🌍 Niveaux CECRL A1 → C1</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(200,150,12,.07);display:flex;align-items:center;gap:6px">🔔 Notifications automatiques</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;display:flex;align-items:center;gap:6px">🏅 Certificats numériques</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💡</div>
+      <div class="card-title">Notre Technologie</div>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(74,144,217,.07);display:flex;align-items:center;gap:6px">⚡ Supabase — données temps réel</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(74,144,217,.07);display:flex;align-items:center;gap:6px">🔐 Authentification sécurisée JWT</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(74,144,217,.07);display:flex;align-items:center;gap:6px">📋 Pointage numérique QR</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(74,144,217,.07);display:flex;align-items:center;gap:6px">💰 Gestion financière intégrée</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(74,144,217,.07);display:flex;align-items:center;gap:6px">📈 Courbes de progression étudiant</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(74,144,217,.07);display:flex;align-items:center;gap:6px">🤖 Quiz &amp; évaluations automatiques</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;border-bottom:1px solid rgba(74,144,217,.07);display:flex;align-items:center;gap:6px">💬 Messagerie interne</div>
+        <div style="font-size:.74rem;color:#E2D8C0;padding:4px 0;display:flex;align-items:center;gap:6px">🎓 Génération certificats auto</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📍</div>
+      <div class="card-title">Modes de Formation</div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+        <div style="background:rgba(74,224,144,.06);border:1px solid rgba(74,224,144,.2);border-radius:8px;padding:10px 12px">
+          <div style="font-weight:800;color:#4AE090;font-size:.8rem;margin-bottom:2px">🏫 Présentiel</div>
+          <div style="font-size:.72rem;color:var(--muted)">Cours en salle · Groupe max 8 personnes</div>
+        </div>
+        <div style="background:rgba(74,144,217,.06);border:1px solid rgba(74,144,217,.2);border-radius:8px;padding:10px 12px">
+          <div style="font-weight:800;color:#4A90D9;font-size:.8rem;margin-bottom:2px">💻 En Ligne</div>
+          <div style="font-size:.72rem;color:var(--muted)">Google Meet / Zoom · Monde entier</div>
+        </div>
+        <div style="background:rgba(200,150,12,.06);border:1px solid rgba(200,150,12,.2);border-radius:8px;padding:10px 12px">
+          <div style="font-weight:800;color:#C8960C;font-size:.8rem;margin-bottom:2px">🔀 Hybride</div>
+          <div style="font-size:.72rem;color:var(--muted)">Présentiel + Ligne · Flexibilité totale</div>
+        </div>
+        <div style="background:rgba(155,89,182,.06);border:1px solid rgba(155,89,182,.2);border-radius:8px;padding:10px 12px">
+          <div style="font-weight:800;color:#9B59B6;font-size:.8rem;margin-bottom:2px">🏢 Entreprise</div>
+          <div style="font-size:.72rem;color:var(--muted)">Formation intra-entreprise · Devis sur mesure</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── IA ASSISTANT HIGHLIGHT ── -->
+  <div class="highlight-row" style="border-color:rgba(155,89,182,.4);background:linear-gradient(135deg,#110820,#0E1830);margin-top:14px">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(155,89,182,.25),rgba(74,144,217,.15));border:1px solid rgba(155,89,182,.5);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">🤖</div>
+    <div style="flex:1;min-width:200px">
+      <div style="font-size:.9rem;font-weight:900;color:#BDC3E7;margin-bottom:4px">🆕 Assistant IA Pédagogique — AGTM AI</div>
+      <div style="font-size:.76rem;color:#7A90B0;line-height:1.6;margin-bottom:8px">Chaque apprenant bénéficie d'une assistante IA personnalisée, propulsée par Claude (Anthropic). Elle répond à vos questions d'anglais, vous propose des exercices adaptés à votre niveau, corrige vos textes et vous aide à progresser 24h/24.</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span style="font-size:.67rem;padding:3px 10px;background:rgba(74,144,217,.1);border:1px solid rgba(74,144,217,.25);border-radius:10px;color:#4A90D9;font-weight:700">🔵 Essentiel — Inclus</span>
+        <span id="vitrine-ia-recommande" style="font-size:.67rem;padding:3px 10px;background:rgba(232,184,75,.1);border:1px solid rgba(232,184,75,.25);border-radius:10px;color:#E8B84B;font-weight:700">🟡 Recommandé +2 000 FCFA/mois</span>
+        <span id="vitrine-ia-premium" style="font-size:.67rem;padding:3px 10px;background:rgba(155,89,182,.1);border:1px solid rgba(155,89,182,.3);border-radius:10px;color:#9B59B6;font-weight:700">🟣 Premium +4 000 FCFA/mois</span>
+      </div>
+    </div>
+    <div style="flex-shrink:0">
+      <button onclick="document.getElementById('loginModal').classList.add('open')" style="padding:10px 20px;border-radius:9px;background:linear-gradient(135deg,#6A2A9A,#9B59B6);border:none;color:#fff;font-weight:800;font-size:.78rem;cursor:pointer;white-space:nowrap">💬 Essayer l'IA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ONGLET : FORMATIONS
+════════════════════════════════════════════════════════════ -->
+<div id="tab-formations" class="section">
+  <div class="sec-title">📚 Nos Formations</div>
+  <div class="sec-sub">Tous les programmes AGTM Digital Academy — Niveaux A1 à C1 selon le Cadre Européen Commun de Référence</div>
+
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-icon">🗣️</div>
+      <div class="card-title">Anglais Général</div>
+      <div class="card-desc">Programme complet du vocabulaire quotidien à la maîtrise professionnelle. Grammaire, expression orale et écrite.</div>
+      <div class="pill-list">
+        <span class="pill">A1</span><span class="pill">A2</span><span class="pill">B1</span><span class="pill">B2</span><span class="pill">C1</span>
+      </div>
+      <div id="vitrine-prix-general" style="margin-top:8px;font-size:.75rem;font-weight:800;color:#C8960C"></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💼</div>
+      <div class="card-title">Business English</div>
+      <div class="card-desc">Anglais professionnel pour le monde des affaires. Emails, réunions, négociations, présentations, commerce international.</div>
+      <div class="pill-list">
+        <span class="pill" style="background:rgba(74,224,144,.12);color:#4AE090;border-color:rgba(74,224,144,.25)">B1</span>
+        <span class="pill" style="background:rgba(74,224,144,.12);color:#4AE090;border-color:rgba(74,224,144,.25)">B2</span>
+        <span class="pill" style="background:rgba(74,224,144,.12);color:#4AE090;border-color:rgba(74,224,144,.25)">C1</span>
+      </div>
+      <div id="vitrine-prix-business" style="margin-top:8px;font-size:.75rem;font-weight:800;color:#C8960C"></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">Préparation TOEIC</div>
+      <div class="card-desc">Préparation intensive à la certification TOEIC. Stratégies, exercices types, simulations d'examen chronométrées.</div>
+      <div class="pill-list">
+        <span class="pill" style="background:rgba(232,184,75,.12);color:#E8B84B;border-color:rgba(232,184,75,.25)">Score 500+</span>
+        <span class="pill" style="background:rgba(232,184,75,.12);color:#E8B84B;border-color:rgba(232,184,75,.25)">Score 785+</span>
+      </div>
+      <div id="vitrine-prix-toeic" style="margin-top:8px;font-size:.75rem;font-weight:800;color:#C8960C"></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏫</div>
+      <div class="card-title">Préparation TOEFL</div>
+      <div class="card-desc">Préparation complète au TOEFL iBT. Reading, Listening, Speaking, Writing — méthodologie officielle.</div>
+      <div class="pill-list">
+        <span class="pill" style="background:rgba(232,184,75,.12);color:#E8B84B;border-color:rgba(232,184,75,.25)">iBT</span>
+        <span class="pill" style="background:rgba(232,184,75,.12);color:#E8B84B;border-color:rgba(232,184,75,.25)">B2→C1</span>
+      </div>
+      <div id="vitrine-prix-toefl" style="margin-top:8px;font-size:.75rem;font-weight:800;color:#C8960C"></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📝</div>
+      <div class="card-title">Préparation BAC/BEPC</div>
+      <div class="card-desc">Programme spécialement conçu pour les élèves préparant le BEPC ou le BAC. Méthode AGTM en 4 étapes, compréhension de texte, expression écrite.</div>
+      <div class="pill-list">
+        <span class="pill">A2</span><span class="pill">B1</span>
+        <span class="pill" style="background:rgba(224,74,74,.12);color:#E04A4A;border-color:rgba(224,74,74,.25)">Examen</span>
+      </div>
+      <div id="vitrine-prix-bac_bepc" style="margin-top:8px;font-size:.75rem;font-weight:800;color:#C8960C"></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌟</div>
+      <div class="card-title">Kids & Teens English</div>
+      <div class="card-desc">Apprentissage adapté aux enfants et adolescents (6–17 ans). Pédagogie ludique, interactive et motivante.</div>
+      <div class="pill-list">
+        <span class="pill" style="background:rgba(155,89,182,.12);color:#9B59B6;border-color:rgba(155,89,182,.25)">6–17 ans</span>
+        <span class="pill" style="background:rgba(155,89,182,.12);color:#9B59B6;border-color:rgba(155,89,182,.25)">A1→B1</span>
+      </div>
+      <div id="vitrine-prix-kids" style="margin-top:8px;font-size:.75rem;font-weight:800;color:#C8960C"></div>
+    </div>
+  </div>
+
+  <!-- Niveaux CECRL -->
+  <div style="background:#152233;border:1px solid #1E3050;border-radius:12px;padding:16px;margin-bottom:16px">
+    <div style="font-size:.82rem;font-weight:800;color:#E8B84B;margin-bottom:12px">📊 Niveaux CECRL — Cadre Européen Commun de Référence pour les Langues</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+      <div style="background:#5A709011;border:1px solid #5A709044;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:900;color:#5A7090">A1</div>
+        <div style="font-size:.7rem;font-weight:700;color:#E2D8C0;margin-top:3px">Débutant</div>
+        <div style="font-size:.62rem;color:var(--muted);margin-top:2px;line-height:1.35">Mots de base, salutations</div>
+      </div>
+      <div style="background:#4AE09011;border:1px solid #4AE09044;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:900;color:#4AE090">A2</div>
+        <div style="font-size:.7rem;font-weight:700;color:#E2D8C0;margin-top:3px">Élémentaire</div>
+        <div style="font-size:.62rem;color:var(--muted);margin-top:2px;line-height:1.35">Phrases simples, quotidien</div>
+      </div>
+      <div style="background:#C8960C11;border:1px solid #C8960C44;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:900;color:#C8960C">B1</div>
+        <div style="font-size:.7rem;font-weight:700;color:#E2D8C0;margin-top:3px">Intermédiaire</div>
+        <div style="font-size:.62rem;color:var(--muted);margin-top:2px;line-height:1.35">Conversations courantes</div>
+      </div>
+      <div style="background:#E8B84B11;border:1px solid #E8B84B44;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:900;color:#E8B84B">B2</div>
+        <div style="font-size:.7rem;font-weight:700;color:#E2D8C0;margin-top:3px">Indépendant</div>
+        <div style="font-size:.62rem;color:var(--muted);margin-top:2px;line-height:1.35">Discussions complexes</div>
+      </div>
+      <div style="background:#4A90D911;border:1px solid #4A90D944;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:900;color:#4A90D9">C1</div>
+        <div style="font-size:.7rem;font-weight:700;color:#E2D8C0;margin-top:3px">Avancé</div>
+        <div style="font-size:.62rem;color:var(--muted);margin-top:2px;line-height:1.35">Maîtrise professionnelle</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-box" style="padding:18px 24px">
+    <div style="font-size:1rem;font-weight:800;color:#E8B84B;margin-bottom:6px">🎓 Inscrivez-vous dès aujourd'hui</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:14px">Remplissez le formulaire en ligne — notre équipe vous contacte sous 24h.</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <a href="dashboard.html?placement=1" target="_blank" class="btn-primary" style="font-size:.8rem;padding:9px 20px">📋 Test de placement gratuit</a>
+      <a href="#" onclick="showTab('contact');return false" class="btn-outline" style="font-size:.8rem;padding:9px 20px">📞 Nous contacter</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ONGLET : PLATEFORME
+════════════════════════════════════════════════════════════ -->
+<div id="tab-plateforme" class="section">
+  <div class="sec-title">💡 La Plateforme AGTM</div>
+  <div class="sec-sub">Un système de gestion complet — pédagogie, finance, ressources humaines, communication — tout en un.</div>
+
+  <div class="grid-4" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-icon">📚</div>
+      <div class="card-title">Gestion Pédagogique</div>
+      <div class="card-desc">Planification des cours, suivi des présences, évaluations, rapports de séance, progression des étudiants.</div>
+      <div class="pill-list">
+        <span class="pill">Séances</span><span class="pill">Présences</span><span class="pill">Notes</span><span class="pill">Bulletins</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <div class="card-title">Finance Intégrée</div>
+      <div class="card-desc">Facturation, suivi des paiements, gestion des quotes, financement personnel. Tableaux de bord financiers en temps réel.</div>
+      <div class="pill-list">
+        <span class="pill">Factures</span><span class="pill">Paiements</span><span class="pill">Rapports</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <div class="card-title">Ressources Humaines</div>
+      <div class="card-desc">Gestion du personnel, contrats, pointage, fiche de paie. Suivi complet des formateurs et du staff.</div>
+      <div class="pill-list">
+        <span class="pill">Personnel</span><span class="pill">Contrats</span><span class="pill">Paie</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎓</div>
+      <div class="card-title">Certificats Numériques</div>
+      <div class="card-desc">Génération automatique de certificats de formation avec QR code de vérification. Téléchargement PDF immédiat.</div>
+      <div class="pill-list">
+        <span class="pill">PDF auto</span><span class="pill">QR code</span><span class="pill">Vérifiable</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💬</div>
+      <div class="card-title">Messagerie & Communication</div>
+      <div class="card-desc">Messagerie interne, notifications WhatsApp, rappels automatiques de séance, espace client.</div>
+      <div class="pill-list">
+        <span class="pill">Messagerie</span><span class="pill">WhatsApp</span><span class="pill">Notifs</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <div class="card-title">Quiz & Activités</div>
+      <div class="card-desc">Quiz interactifs, évaluations en ligne, activités pédagogiques, English Corner avec ressources CECRL A1→C2.</div>
+      <div class="pill-list">
+        <span class="pill">Quiz</span><span class="pill">Éval</span><span class="pill">English Corner</span>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(74,224,144,.3)">
+      <div class="card-icon">🎓</div>
+      <div class="card-title">Classe Virtuelle</div>
+      <div class="card-desc">Cours en direct synchronisé : le formateur contrôle la vidéo YouTube sur tous les appareils élèves en temps réel. Identification, notes et suivi instantanés.</div>
+      <div class="pill-list">
+        <span class="pill">Live Class</span><span class="pill">Éval temps réel</span><span class="pill">Suivi auto</span>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(155,89,182,.3)">
+      <div class="card-icon">🎤</div>
+      <div class="card-title">Assistant IA Vocal</div>
+      <div class="card-desc">Posez vos questions à l'IA à la voix — en anglais ou en français. Reconnaissance vocale, lecture des réponses et score de prononciation intégrés.</div>
+      <div class="pill-list">
+        <span class="pill">Voix EN/FR</span><span class="pill">TTS</span><span class="pill">Prononciation</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stack technique -->
+  <div style="background:#152233;border:1px solid #1E3050;border-radius:12px;padding:16px">
+    <div style="font-size:.82rem;font-weight:800;color:#4A90D9;margin-bottom:12px">🛠️ Stack Technique</div>
+    <div class="grid-4">
+      <div class="tech-card"><div class="tech-icon">🗄️</div><div class="tech-name">Supabase</div><div class="tech-desc">Base de données PostgreSQL temps réel</div></div>
+      <div class="tech-card"><div class="tech-icon">🚀</div><div class="tech-name">Netlify</div><div class="tech-desc">Hébergement CDN mondial haute vitesse</div></div>
+      <div class="tech-card"><div class="tech-icon">⚡</div><div class="tech-name">Vanilla JS</div><div class="tech-desc">Performance maximale, zéro dépendance</div></div>
+      <div class="tech-card"><div class="tech-icon">🔐</div><div class="tech-name">Auth JWT</div><div class="tech-desc">Authentification sécurisée par rôle</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ONGLET : RÔLES
+════════════════════════════════════════════════════════════ -->
+<div id="tab-roles" class="section">
+  <div class="sec-title">👥 Rôles Utilisateurs</div>
+  <div class="sec-sub">4 profils distincts, chacun avec son espace personnalisé et ses accès spécifiques.</div>
+
+  <div class="grid-4">
+    <div class="role-card" style="border-color:rgba(224,74,74,.3)">
+      <div class="role-icon">👑</div>
+      <div class="role-name" style="color:#E04A4A">Administrateur</div>
+      <div class="role-desc">Accès total à toutes les fonctionnalités de la plateforme.</div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div class="role-mod">Vue d'ensemble complète</div>
+        <div class="role-mod">Gestion des étudiants</div>
+        <div class="role-mod">Finance Pro + Perso</div>
+        <div class="role-mod">Ressources Humaines</div>
+        <div class="role-mod">Paramètres système</div>
+        <div class="role-mod">Certificats &amp; Marketing</div>
+      </div>
+    </div>
+    <div class="role-card" style="border-color:rgba(200,150,12,.3)">
+      <div class="role-icon">📋</div>
+      <div class="role-name" style="color:#C8960C">Secrétaire</div>
+      <div class="role-desc">Gestion administrative, inscriptions et suivi des étudiants.</div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div class="role-mod">Gestion étudiants</div>
+        <div class="role-mod">Inscriptions web</div>
+        <div class="role-mod">Suivi pédagogique</div>
+        <div class="role-mod">Séances &amp; Présences</div>
+        <div class="role-mod">Messagerie</div>
+        <div class="role-mod">Espace Client</div>
+      </div>
+    </div>
+    <div class="role-card" style="border-color:rgba(74,144,217,.3)">
+      <div class="role-icon">👨‍🏫</div>
+      <div class="role-name" style="color:#4A90D9">Formateur</div>
+      <div class="role-desc">Gestion des cours, présences et progression des étudiants.</div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div class="role-mod">Planning &amp; Classes</div>
+        <div class="role-mod">Feuilles de présence</div>
+        <div class="role-mod">Rapports de séance</div>
+        <div class="role-mod">Tests &amp; Évaluations</div>
+        <div class="role-mod">Activités pédagogiques</div>
+        <div class="role-mod">English Corner</div>
+      </div>
+    </div>
+    <div class="role-card" style="border-color:rgba(74,224,144,.3)">
+      <div class="role-icon">👨‍🎓</div>
+      <div class="role-name" style="color:#4AE090">Étudiant / Apprenant</div>
+      <div class="role-desc">Espace personnel complet avec suivi de progression gamifié.</div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div class="role-mod">Mon Espace (gamifié)</div>
+        <div class="role-mod">Mes séances &amp; cours</div>
+        <div class="role-mod">Emploi du temps</div>
+        <div class="role-mod">Notes &amp; Bulletin</div>
+        <div class="role-mod">Quiz interactifs</div>
+        <div class="role-mod">English Corner</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ONGLET : MODULES
+════════════════════════════════════════════════════════════ -->
+<div id="tab-modules" class="section">
+  <div class="sec-title">🧩 33+ Modules Fonctionnels</div>
+  <div class="sec-sub">Tous les modules intégrés dans la plateforme AGTM — organisés par catégorie.</div>
+
+  <div style="margin-bottom:20px">
+    <div style="font-size:.78rem;font-weight:800;color:#E04A4A;margin-bottom:8px;padding:6px 10px;background:rgba(224,74,74,.08);border-radius:6px;border-left:3px solid #E04A4A">👑 Administration</div>
+    <div class="grid-6">
+      <div class="mod-card"><span class="mod-icon">📊</span>Vue d'ensemble</div>
+      <div class="mod-card"><span class="mod-icon">👨‍🎓</span>Étudiants</div>
+      <div class="mod-card"><span class="mod-icon">🌐</span>Inscriptions Web</div>
+      <div class="mod-card"><span class="mod-icon">💰</span>Finance Pro</div>
+      <div class="mod-card"><span class="mod-icon">🔐</span>Finance Perso</div>
+      <div class="mod-card"><span class="mod-icon">⚙️</span>Utilisateurs</div>
+      <div class="mod-card"><span class="mod-icon">🔧</span>Paramètres</div>
+      <div class="mod-card"><span class="mod-icon">📈</span>Investisseur</div>
+    </div>
+  </div>
+  <div style="margin-bottom:20px">
+    <div style="font-size:.78rem;font-weight:800;color:#C8960C;margin-bottom:8px;padding:6px 10px;background:rgba(200,150,12,.08);border-radius:6px;border-left:3px solid #C8960C">📚 Pédagogie</div>
+    <div class="grid-6">
+      <div class="mod-card"><span class="mod-icon">📅</span>Séances</div>
+      <div class="mod-card"><span class="mod-icon">✅</span>Présences</div>
+      <div class="mod-card"><span class="mod-icon">📚</span>Suivi Pédago</div>
+      <div class="mod-card"><span class="mod-icon">📋</span>Rapports</div>
+      <div class="mod-card"><span class="mod-icon">📝</span>Rapport Séance</div>
+      <div class="mod-card"><span class="mod-icon">🧪</span>Tests &amp; Évals</div>
+      <div class="mod-card"><span class="mod-icon">🗓️</span>Planning</div>
+      <div class="mod-card"><span class="mod-icon">👥</span>Classes</div>
+      <div class="mod-card"><span class="mod-icon">📈</span>Progression</div>
+      <div class="mod-card"><span class="mod-icon">🎓</span>Certificats</div>
+    </div>
+  </div>
+  <div style="margin-bottom:20px">
+    <div style="font-size:.78rem;font-weight:800;color:#4AE090;margin-bottom:8px;padding:6px 10px;background:rgba(74,224,144,.08);border-radius:6px;border-left:3px solid #4AE090">👨‍🎓 Espace Étudiant</div>
+    <div class="grid-6">
+      <div class="mod-card"><span class="mod-icon">🏠</span>Mon Espace</div>
+      <div class="mod-card"><span class="mod-icon">📅</span>Mes Séances</div>
+      <div class="mod-card"><span class="mod-icon">📆</span>Emploi du Temps</div>
+      <div class="mod-card"><span class="mod-icon">📚</span>Ressources</div>
+      <div class="mod-card"><span class="mod-icon">💬</span>Messages</div>
+      <div class="mod-card"><span class="mod-icon">📈</span>Mes Notes</div>
+      <div class="mod-card"><span class="mod-icon">🧠</span>Quiz Interactif</div>
+      <div class="mod-card"><span class="mod-icon">📤</span>Mes Devoirs</div>
+      <div class="mod-card"><span class="mod-icon">⭐</span>Évaluer Séances</div>
+    </div>
+  </div>
+  <div style="margin-bottom:20px">
+    <div style="font-size:.78rem;font-weight:800;color:#25D366;margin-bottom:8px;padding:6px 10px;background:rgba(37,211,102,.08);border-radius:6px;border-left:3px solid #25D366">💬 Communication &amp; Marketing</div>
+    <div class="grid-6">
+      <div class="mod-card"><span class="mod-icon">💬</span>Messagerie</div>
+      <div class="mod-card"><span class="mod-icon">🎯</span>Marketing</div>
+      <div class="mod-card"><span class="mod-icon">📞</span>Espace Client</div>
+      <div class="mod-card"><span class="mod-icon">📲</span>WhatsApp</div>
+      <div class="mod-card"><span class="mod-icon">📣</span>Supports Comms</div>
+      <div class="mod-card"><span class="mod-icon">🔗</span>Liens Utiles</div>
+    </div>
+  </div>
+  <div>
+    <div style="font-size:.78rem;font-weight:800;color:#9B59B6;margin-bottom:8px;padding:6px 10px;background:rgba(155,89,182,.08);border-radius:6px;border-left:3px solid #9B59B6">📖 Activités &amp; Ressources</div>
+    <div class="grid-6">
+      <div class="mod-card"><span class="mod-icon">📖</span>Activités Pédago</div>
+      <div class="mod-card"><span class="mod-icon">🇬🇧</span>English Corner</div>
+      <div class="mod-card"><span class="mod-icon">📊</span>Cambridge Dict.</div>
+      <div class="mod-card"><span class="mod-icon">📻</span>BBC Learning</div>
+      <div class="mod-card"><span class="mod-icon">✍️</span>Grammarly</div>
+      <div class="mod-card"><span class="mod-icon">🎓</span>British Council</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ONGLET : SÉCURITÉ
+════════════════════════════════════════════════════════════ -->
+<div id="tab-securite" class="section">
+  <div class="sec-title">🔐 Sécurité & Confidentialité</div>
+  <div class="sec-sub">La protection de vos données est notre priorité — architecture sécurisée de bout en bout.</div>
+
+  <div class="grid-3">
+    <div class="sec-card"><div class="sec-card-icon">🔑</div><div><div class="sec-card-title">Authentification JWT</div><div class="sec-card-desc">Chaque connexion génère un token sécurisé. Sessions avec expiration automatique.</div></div></div>
+    <div class="sec-card"><div class="sec-card-icon">🛡️</div><div><div class="sec-card-title">Row Level Security</div><div class="sec-card-desc">Chaque utilisateur ne voit que ses propres données. Isolation complète par rôle.</div></div></div>
+    <div class="sec-card"><div class="sec-card-icon">🔒</div><div><div class="sec-card-title">Données chiffrées</div><div class="sec-card-desc">Toutes les données sont chiffrées en transit (HTTPS/TLS) et au repos.</div></div></div>
+    <div class="sec-card"><div class="sec-card-icon">👤</div><div><div class="sec-card-title">Contrôle d'accès</div><div class="sec-card-desc">Permissions granulaires par rôle. L'admin contrôle l'accès de chaque module.</div></div></div>
+    <div class="sec-card"><div class="sec-card-icon">🚫</div><div><div class="sec-card-title">Aucune donnée partagée</div><div class="sec-card-desc">Aucune information personnelle n'est visible entre comptes. Étanchéité totale.</div></div></div>
+    <div class="sec-card"><div class="sec-card-icon">☁️</div><div><div class="sec-card-title">Hébergement sécurisé</div><div class="sec-card-desc">Infrastructure Supabase (EU) + Netlify CDN. Sauvegarde automatique quotidienne.</div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ONGLET : CONTACT
+════════════════════════════════════════════════════════════ -->
+<div id="tab-contact" class="section">
+  <div class="sec-title">📞 Contactez-nous</div>
+  <div class="sec-sub">Notre équipe est disponible pour répondre à toutes vos questions.</div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="cta-box" style="text-align:left">
+      <div style="font-size:.88rem;font-weight:800;color:#E8B84B;margin-bottom:12px">🏫 AGTM Digital Academy</div>
+      <div class="info-row" style="justify-content:flex-start;flex-direction:column;gap:8px">
+        <div class="info-chip">📍 <span>Abidjan, Côte d'Ivoire 🇨🇮</span></div>
+        <div class="info-chip">👨‍💼 Directeur : <span>ISSA BAMBA</span></div>
+        <div class="info-chip">📧 <span>contact@africaglobaltraining.com</span></div>
+        <div class="info-chip">🌐 <span>africaglobaltraining.com</span></div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <a href="dashboard.html" class="btn-primary" style="font-size:.8rem;padding:9px 18px">🔑 Espace Étudiant</a>
+        <a href="dashboard.html?placement=1" target="_blank" class="btn-outline" style="font-size:.8rem;padding:9px 18px">📋 Test de placement</a>
+      </div>
+    </div>
+    <div class="cta-box" style="text-align:left">
+      <div style="font-size:.88rem;font-weight:800;color:#25D366;margin-bottom:12px">💬 Inscription & Renseignements</div>
+      <div id="vitrine-inscription-info" style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:14px">
+        Vous souhaitez vous inscrire ou en savoir plus sur nos formations ?<br/>
+        Remplissez le formulaire d'inscription ou contactez-nous directement.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <a id="vitrine-inscription-btn" href="inscription.html" class="btn-primary" style="text-align:center;font-size:.8rem;padding:10px 18px;display:block">📝 Formulaire d'inscription</a>
+        <a id="waContactBtn" href="https://wa.me/2250707967250?text=Bonjour%2C%20je%20souhaite%20m%27inscrire%20%C3%A0%20AGTM%20Digital%20Academy." target="_blank" rel="noopener"
+          style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:9px;background:#25D366;color:#fff;font-weight:800;font-size:.8rem;text-decoration:none;transition:opacity .2s">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+          Écrire sur WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA final -->
+  <div class="cta-box">
+    <div class="cta-title" id="vitrine-cta-title">🚀 Rejoignez AGTM Digital Academy</div>
+    <div class="cta-sub" id="vitrine-cta-sub">Plus de 500 apprenants font confiance à notre plateforme. Commencez votre parcours en anglais dès aujourd'hui.</div>
+    <div class="cta-btns">
+      <a href="inscription.html" class="btn-primary">📝 S'inscrire maintenant</a>
+      <a href="dashboard.html?placement=1" target="_blank" class="btn-outline">🎓 Test de niveau gratuit</a>
+      <a href="dashboard.html" class="btn-outline" style="border-color:#4A90D9;color:#4A90D9">🔑 Déjà inscrit ? Se connecter</a>
+    </div>
+    <div style="margin-top:16px;font-size:.7rem;color:#3A5070">
+      © 2026 AGTM Digital Academy — Propriété de ISSA BAMBA — Abidjan, Côte d'Ivoire
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrapper -->
+
+<!-- ── LOGIN MODAL ───────────────────────────────────────────── -->
+<div id="loginModal">
+  <div class="lm-box">
+    <div class="lm-head">
+      <div>
+        <div style="font-weight:800;color:var(--gold-lt);font-size:.95rem">🔑 Connexion Espace AGTM</div>
+        <div style="font-size:.7rem;color:#5A7090;margin-top:2px">Étudiants · Formateurs · Administration</div>
+      </div>
+      <button onclick="document.getElementById('loginModal').classList.remove('open')" style="background:none;border:none;color:#5A7090;font-size:1.2rem;cursor:pointer;padding:4px">✕</button>
+    </div>
+    <div class="lm-body">
+      <div style="font-size:.72rem;color:#5A7090;margin-bottom:14px">Connectez-vous à votre espace personnel AGTM Digital Academy.</div>
+      <div id="lmErr" class="lm-err"></div>
+      <input id="lmEmail" class="lm-inp" type="email" placeholder="Votre adresse email"/>
+      <input id="lmPwd" class="lm-inp" type="password" placeholder="Mot de passe"/>
+      <button class="lm-btn" onclick="window._lmLogin()">Se connecter →</button>
+      <div style="text-align:center;margin-top:12px">
+        <a href="dashboard.html" style="color:var(--gold);font-size:.75rem;text-decoration:none;font-weight:600">Accéder au tableau de bord complet →</a>
+      </div>
+    </div>
+    <div class="lm-foot">🔒 Connexion sécurisée — Vos données sont protégées</div>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+  const SB_URL = 'https://fglzovvsyloprokmdadx.supabase.co'
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnbHpvdnZzeWxvcHJva21kYWR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NzkxODEsImV4cCI6MjA5MDU1NTE4MX0.QffMgmgl0Ti-ZCuQ0y_eWbZYLd5ktq-1Y6nh1RfKZww'
+  const sb = createClient(SB_URL, SB_KEY)
+
+  window._lmLogin = async function() {
+    const email = document.getElementById('lmEmail')?.value?.trim()
+    const pwd   = document.getElementById('lmPwd')?.value
+    const err   = document.getElementById('lmErr')
+    if (!email || !pwd) { err.textContent = 'Veuillez remplir tous les champs.'; return }
+    err.textContent = 'Connexion…'
+    const { error } = await sb.auth.signInWithPassword({ email, password: pwd })
+    if (error) { err.textContent = 'Identifiants incorrects. Vérifiez votre email et mot de passe.'; return }
+    location.href = 'dashboard.html'
+  }
+  document.getElementById('lmPwd')?.addEventListener('keydown', e => { if(e.key==='Enter') window._lmLogin() })
+
+  // Charger le numéro WhatsApp admin depuis Supabase et mettre à jour le lien
+  ;(async () => {
+    try {
+      const { data } = await sb.from('app_config').select('data').eq('id', 1).maybeSingle()
+      const tel = data?.data?.telephone || ''
+      if (tel) {
+        // Formatter le numéro : supprimer +, espaces, tirets, parenthèses
+        const num = tel.replace(/[\s\-\(\)\+]/g, '')
+        const msg = encodeURIComponent('Bonjour, je souhaite m\'inscrire à AGTM Digital Academy et en savoir plus sur vos formations.')
+        const link = document.getElementById('waContactBtn')
+        if (link) link.href = `https://wa.me/${num}?text=${msg}`
+      }
+    } catch(_) {}
+
+    // Charger marketing_config et appliquer les valeurs dynamiques
+    try {
+      const { data: mktRows } = await sb.from('marketing_config').select('cle,valeur')
+      const mkt = {}
+      if (mktRows) mktRows.forEach(r => { mkt[r.cle] = r.valeur })
+      const v = (cle, fb) => (mkt[cle] !== undefined && mkt[cle] !== '') ? mkt[cle] : fb
+
+      // IA tiers prices
+      const iaRec = document.getElementById('vitrine-ia-recommande')
+      if (iaRec) iaRec.textContent = `🟡 Recommandé ${v('prix_ia_recommande','+2 000 FCFA/mois')}`
+      const iaPrem = document.getElementById('vitrine-ia-premium')
+      if (iaPrem) iaPrem.textContent = `🟣 Premium ${v('prix_ia_premium','+4 000 FCFA/mois')}`
+
+      // Prix formations
+      const prixMap = { general:'prix_general', business:'prix_business', toeic:'prix_toeic', toefl:'prix_toefl', bac_bepc:'prix_bac_bepc', kids:'prix_kids' }
+      Object.entries(prixMap).forEach(([id, cle]) => {
+        const el = document.getElementById('vitrine-prix-'+id)
+        if (el && mkt[cle]) el.textContent = '💰 ' + mkt[cle]
+      })
+
+      // CTA
+      const ctaSub = document.getElementById('vitrine-cta-sub')
+      if (ctaSub) ctaSub.textContent = `Plus de ${v('stats_apprenants','500+')} apprenants. ${v('message_cta','Commencez votre parcours en anglais dès aujourd\'hui.')}`
+
+      // Inscription info
+      const inscInfo = document.getElementById('vitrine-inscription-info')
+      if (inscInfo) {
+        const ouvert = v('inscription_ouverte','true') === 'true'
+        const periode = v('periode_inscription','')
+        const rentree = v('prochaine_rentree','')
+        const offre = v('offre_speciale','')
+        const contact = v('contact_inscription','')
+        inscInfo.innerHTML = `${ouvert ? '✅ Inscriptions ouvertes' : '🔒 Inscriptions fermées'}${periode ? ' — '+periode : ''}<br/>${rentree ? '📅 Prochaine rentrée : '+rentree+'<br/>' : ''}${offre ? '<strong style="color:#C8960C">🎁 '+offre+'</strong><br/>' : ''}${contact ? '📞 '+contact : 'Remplissez le formulaire ou contactez-nous directement.'}`
+        const inscBtn = document.getElementById('vitrine-inscription-btn')
+        if (inscBtn && !ouvert) { inscBtn.style.opacity='0.5'; inscBtn.textContent='🔒 Inscriptions fermées'; inscBtn.style.pointerEvents='none' }
+      }
+    } catch(_) {}
+  })()
+</script>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'))
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+    const sec = document.getElementById('tab-' + id)
+    if (sec) {
+      sec.classList.add('active')
+      // Rejouer l'animation à chaque ouverture d'onglet
+      sec.style.animation = 'none'
+      sec.offsetHeight // force reflow
+      sec.style.animation = 'fadeInUp .35s ease both'
+    }
+    const idx = ['accueil','formations','plateforme','roles','modules','securite','contact']
+    const btn = document.querySelectorAll('.tab-btn')[idx.indexOf(id)]
+    if (btn) btn.classList.add('active')
+    if (btn) btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})
+  }
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  }
+
+  // ── PWA Install prompt ─────────────────────────────────────
+  window._pwaPrompt = null
+
+  window._pwaInstall = function() {
+    if (window._pwaPrompt) {
+      // Prompt natif disponible : déclencher l'installation
+      window._pwaPrompt.prompt()
+      window._pwaPrompt.userChoice.then(r => {
+        if (r.outcome === 'accepted') {
+          const btn = document.getElementById('pwaInstallBtn')
+          if (btn) { btn.textContent = '✅ Application installée !'; btn.style.borderColor = '#4AE090'; btn.style.color = '#4AE090'; btn.onclick = null }
+        }
+        window._pwaPrompt = null
+      })
+    } else {
+      // Pas de prompt natif : afficher un guide d'installation manuel
+      const existing = document.getElementById('_pwaGuideOverlay')
+      if (existing) { existing.remove(); return }
+      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent)
+      const isEdge   = /Edg/.test(navigator.userAgent)
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+      const isMobile = /Android|iPhone|iPad/.test(navigator.userAgent)
+
+      let steps = ''
+      if (isMobile && isSafari) {
+        steps = `<li>Appuyez sur le bouton <strong>Partager</strong> (carré avec flèche ↑) en bas de Safari</li>
+                 <li>Faites défiler et appuyez sur <strong>"Sur l'écran d'accueil"</strong></li>
+                 <li>Confirmez en appuyant sur <strong>"Ajouter"</strong></li>`
+      } else if (isMobile) {
+        steps = `<li>Appuyez sur le menu <strong>⋮</strong> (trois points) en haut à droite de Chrome</li>
+                 <li>Appuyez sur <strong>"Ajouter à l'écran d'accueil"</strong></li>
+                 <li>Confirmez en appuyant sur <strong>"Ajouter"</strong></li>`
+      } else if (isEdge) {
+        steps = `<li>Cliquez sur le menu <strong>…</strong> (trois points) en haut à droite</li>
+                 <li>Cliquez sur <strong>"Applications"</strong> puis <strong>"Installer ce site en tant qu'application"</strong></li>
+                 <li>Confirmez en cliquant sur <strong>"Installer"</strong></li>`
+      } else {
+        steps = `<li>Cliquez sur l'icône <strong>⊕</strong> ou l'icône d'ordinateur dans la barre d'adresse Chrome</li>
+                 <li>Ou cliquez sur le menu <strong>⋮</strong> (trois points) → <strong>"Installer AGTM Digital Academy"</strong></li>
+                 <li>Confirmez en cliquant sur <strong>"Installer"</strong></li>`
+      }
+
+      const overlay = document.createElement('div')
+      overlay.id = '_pwaGuideOverlay'
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px'
+      overlay.innerHTML = `
+        <div style="background:#152233;border:1px solid #4A90D9;border-radius:16px;padding:28px;max-width:420px;width:100%">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <span style="font-size:.95rem;font-weight:800;color:#C8D8E8">⬇ Installer AGTM Academy</span>
+            <button onclick="document.getElementById('_pwaGuideOverlay').remove()" style="background:transparent;border:none;color:#5A7090;font-size:1.3rem;cursor:pointer">✕</button>
+          </div>
+          <p style="font-size:.82rem;color:#8AAAC0;margin-bottom:14px">Pour installer l'application sur votre appareil, suivez ces étapes :</p>
+          <ol style="font-size:.82rem;color:#C8D8E8;line-height:1.8;padding-left:18px;margin-bottom:16px">${steps}</ol>
+          <div style="background:rgba(74,144,217,.08);border:1px solid rgba(74,144,217,.2);border-radius:8px;padding:10px 12px;font-size:.75rem;color:#6A9ABB">
+            💡 Une fois installée, l'application fonctionne comme une app native, même hors connexion.
+          </div>
+        </div>`
+      document.body.appendChild(overlay)
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove() })
+    }
+  }
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault()
+    window._pwaPrompt = e
+    // Mettre le bouton en surbrillance pour indiquer que l'installation native est disponible
+    const btn = document.getElementById('pwaInstallBtn')
+    if (btn) {
+      btn.style.background = 'linear-gradient(135deg,rgba(74,144,217,.15),rgba(74,144,217,.05))'
+      btn.style.borderColor = '#4A90D9'
+      btn.title = 'Cliquez pour installer AGTM Digital Academy en application'
+    }
+  })
+
+  window.addEventListener('appinstalled', () => {
+    window._pwaPrompt = null
+    const btn = document.getElementById('pwaInstallBtn')
+    if (btn) { btn.textContent = '✅ Application installée'; btn.style.color = '#4AE090'; btn.style.borderColor = '#4AE090'; btn.onclick = null }
+  })
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     CHATBOT VITRINE — Widget flottant prospect
+════════════════════════════════════════════════════════ -->
+<style>
+  @keyframes vBounce  { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
+  @keyframes vPulse   { 0%,100%{box-shadow:0 0 0 0 rgba(200,150,12,.55)} 65%{box-shadow:0 0 0 12px rgba(200,150,12,0)} }
+  @keyframes vSlideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  #vChat { position:fixed;bottom:20px;right:16px;z-index:9990;font-family:inherit }
+
+  /* ── Bouton flottant ── */
+  #vChatBtn {
+    width:66px;height:66px;border-radius:50%;border:3px solid rgba(200,150,12,.35);cursor:pointer;
+    background:linear-gradient(135deg,#C8960C,#E8B84B);
+    box-shadow:0 6px 28px rgba(200,150,12,.5);
+    display:flex;align-items:center;justify-content:center;font-size:1.75rem;
+    transition:transform .2s,box-shadow .2s;
+    animation:vPulse 2.8s infinite;
+    position:relative;
+  }
+  #vChatBtn:hover { transform:scale(1.1);box-shadow:0 8px 36px rgba(200,150,12,.7);animation:none }
+
+  /* Bulle label au-dessus du bouton */
+  #vChatLabel {
+    position:absolute;bottom:74px;right:0;
+    background:#C8960C;color:#0D1B2A;font-size:.78rem;font-weight:800;
+    padding:5px 13px;border-radius:20px;white-space:nowrap;
+    box-shadow:0 3px 12px rgba(200,150,12,.4);
+    pointer-events:none;
+  }
+  #vChatLabel::after {
+    content:'';position:absolute;bottom:-6px;right:22px;
+    border:6px solid transparent;border-top-color:#C8960C;border-bottom:none;
+  }
+
+  /* Badge non-lu */
+  #vChatBadge {
+    position:absolute;top:-5px;right:-5px;width:22px;height:22px;border-radius:50%;
+    background:#E04A4A;color:#fff;font-size:.65rem;font-weight:800;
+    display:none;align-items:center;justify-content:center;border:2px solid #09111E;
+  }
+
+  /* ── Panel ── */
+  #vChatPanel {
+    position:absolute;bottom:78px;right:0;width:370px;
+    background:#0D1B2A;border:1px solid rgba(200,150,12,.28);border-radius:20px;
+    box-shadow:0 14px 56px rgba(0,0,0,.7);overflow:hidden;
+    display:none;flex-direction:column;max-height:560px;
+    animation:vSlideUp .22s ease both;
+  }
+  #vChatPanel.open { display:flex }
+
+  /* Header or */
+  #vChatHeader {
+    padding:14px 16px;background:linear-gradient(135deg,#8B5E00,#C8960C 60%,#E8B84B);
+    display:flex;align-items:center;gap:12px;flex-shrink:0;
+  }
+
+  /* Zone messages */
+  #vChatMessages {
+    flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;
+    scrollbar-width:thin;scrollbar-color:#1E3050 transparent;min-height:160px;
+  }
+  #vChatMessages::-webkit-scrollbar { width:4px }
+  #vChatMessages::-webkit-scrollbar-thumb { background:#2A3F58;border-radius:4px }
+
+  /* Bulles messages */
+  .vMsg-user {
+    align-self:flex-end;max-width:80%;padding:12px 16px;border-radius:18px 18px 4px 18px;
+    background:linear-gradient(135deg,#1C3A6A,#152850);border:1px solid #2A5080;
+    color:#E2D8C0;font-size:1rem;line-height:1.65;word-break:break-word;
+  }
+  .vMsg-bot {
+    align-self:flex-start;max-width:90%;padding:12px 16px;border-radius:18px 18px 18px 4px;
+    background:rgba(200,150,12,.07);border:1px solid rgba(200,150,12,.18);
+    color:#EEE8D8;font-size:1rem;line-height:1.7;word-break:break-word;
+  }
+
+  /* Footer saisie */
+  #vChatFooter {
+    padding:12px 14px;border-top:1px solid #1A2E42;display:flex;gap:10px;flex-shrink:0;background:#0A1520;
+  }
+  #vChatInput {
+    flex:1;padding:12px 14px;border-radius:12px;background:#0D1B2A;
+    border:1.5px solid #2A3F58;color:#E2D8C0;font-size:1rem;outline:none;resize:none;
+    line-height:1.5;max-height:110px;overflow-y:auto;font-family:inherit;min-height:46px;
+  }
+  #vChatInput::placeholder { color:#4A6080 }
+  #vChatInput:focus { border-color:#C8960C;box-shadow:0 0 0 3px rgba(200,150,12,.12) }
+  #vChatSend {
+    width:46px;height:46px;border-radius:12px;border:none;cursor:pointer;flex-shrink:0;
+    background:linear-gradient(135deg,#C8960C,#A07008);color:#0D1B2A;font-size:1.1rem;font-weight:900;
+    transition:opacity .2s,transform .1s;align-self:flex-end;
+  }
+  #vChatSend:hover { opacity:.85;transform:scale(1.06) }
+  #vChatSend:disabled { opacity:.35;cursor:not-allowed }
+
+  /* Dots animation */
+  .vDots { display:inline-flex;gap:4px;align-items:center;padding:2px 0 }
+  .vDots span { width:7px;height:7px;border-radius:50%;background:#C8960C;animation:vBounce .9s infinite }
+  .vDots span:nth-child(2) { animation-delay:.15s }
+  .vDots span:nth-child(3) { animation-delay:.3s }
+
+  /* ── MOBILE ── */
+  @media (max-width:500px) {
+    #vChat { bottom:12px;right:12px }
+    #vChatLabel { font-size:.72rem;padding:4px 10px;bottom:70px }
+    #vChatBtn { width:60px;height:60px;font-size:1.55rem }
+    #vChatPanel {
+      position:fixed;bottom:0;left:0;right:0;width:100%;border-radius:22px 22px 0 0;
+      max-height:78vh;box-shadow:0 -6px 40px rgba(0,0,0,.7);
+    }
+    .vMsg-user,.vMsg-bot { font-size:1.02rem;padding:13px 16px }
+    #vChatInput { font-size:1rem;min-height:48px;padding:13px 14px }
+    #vChatSend { width:50px;height:50px;font-size:1.2rem }
+    #vChatHeader { padding:16px }
+  }
+</style>
+
+<div id="vChat">
+  <div id="vChatPanel" role="dialog" aria-label="Chatbot EIP">
+    <div id="vChatHeader">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.25);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">🎓</div>
+      <div style="flex:1">
+        <div style="font-size:.95rem;font-weight:800;color:#0D1B2A;letter-spacing:-.01em">EIP — English In Practice</div>
+        <div style="font-size:.75rem;color:rgba(13,27,42,.7);font-weight:600;display:flex;align-items:center;gap:5px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#4AE090;display:inline-block"></span>
+          Assistant en ligne · Répond en direct
+        </div>
+      </div>
+      <button onclick="window._vChatToggle()" aria-label="Fermer"
+        style="background:rgba(0,0,0,.15);border:none;color:#0D1B2A;font-size:1rem;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">✕</button>
+    </div>
+
+    <div id="vChatMessages">
+      <div class="vMsg-bot">
+        Bonjour 👋 Je suis l'assistant virtuel d'EIP — English In Practice.<br><br>
+        Je peux vous renseigner sur nos formations d'anglais, les tarifs et les inscriptions. Comment puis-je vous aider ?
+      </div>
+    </div>
+
+    <div id="vChatFooter">
+      <textarea id="vChatInput" rows="1" placeholder="Posez votre question…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window._vChatSend()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px'"></textarea>
+      <button id="vChatSend" onclick="window._vChatSend()" title="Envoyer">➤</button>
+    </div>
+  </div>
+
+  <div id="vChatLabel">💬 Parler à un conseiller</div>
+  <button id="vChatBtn" onclick="window._vChatToggle()" aria-label="Ouvrir le chat">
+    🎓
+    <div id="vChatBadge">1</div>
+  </button>
+</div>
+
+<script>
+;(function(){
+  const VITRINE_API = '/.netlify/functions/vitrine-chat'
+  let _msgs = []
+  let _loading = false
+  let _prospectCaptured = false
+  let _unread = false
+
+  function _escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+  }
+
+  function _appendMsg(role, text) {
+    const box = document.getElementById('vChatMessages')
+    if (!box) return
+    const div = document.createElement('div')
+    div.className = role === 'user' ? 'vMsg-user' : 'vMsg-bot'
+    div.innerHTML = _escHtml(text).replace(/\n/g,'<br>')
+    box.appendChild(div)
+    box.scrollTop = box.scrollHeight
+  }
+
+  function _showTyping() {
+    const box = document.getElementById('vChatMessages')
+    if (!box) return
+    const div = document.createElement('div')
+    div.className = 'vMsg-bot'; div.id = 'vChatTyping'
+    div.innerHTML = '<div class="vDots"><span></span><span></span><span></span></div>'
+    box.appendChild(div)
+    box.scrollTop = box.scrollHeight
+  }
+
+  function _removeTyping() {
+    document.getElementById('vChatTyping')?.remove()
+  }
+
+  async function _captureProspect(info) {
+    if (_prospectCaptured) return
+    try {
+      await fetch(VITRINE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'capture_prospect', prospect: info })
+      })
+      _prospectCaptured = true
+    } catch(_) {}
+  }
+
+  window._vChatSend = async function() {
+    if (_loading) return
+    const inp = document.getElementById('vChatInput')
+    const msg = inp?.value?.trim()
+    if (!msg) return
+
+    inp.value = ''; inp.style.height = 'auto'
+    _msgs.push({ role: 'user', content: msg })
+    _appendMsg('user', msg)
+    _loading = true
+    document.getElementById('vChatSend').disabled = true
+    _showTyping()
+
+    try {
+      const res = await fetch(VITRINE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: _msgs.slice(-10) })
+      })
+      const data = await res.json()
+      _removeTyping()
+
+      if (!res.ok || !data.reply) throw new Error(data.error || 'Erreur')
+
+      _msgs.push({ role: 'assistant', content: data.reply })
+      _appendMsg('bot', data.reply)
+
+      // Capture automatique prospect si signal détecté
+      if (data.capture && !_prospectCaptured) {
+        await _captureProspect(data.capture)
+      }
+
+      // Badge si panel fermé
+      if (!document.getElementById('vChatPanel').classList.contains('open')) {
+        _unread = true
+        const badge = document.getElementById('vChatBadge')
+        if (badge) { badge.style.display = 'flex' }
+      }
+
+    } catch(e) {
+      _removeTyping()
+      _appendMsg('bot', 'Désolé, une erreur est survenue. Veuillez réessayer dans un instant.')
+    } finally {
+      _loading = false
+      document.getElementById('vChatSend').disabled = false
+    }
+  }
+
+  window._vChatToggle = function() {
+    const panel = document.getElementById('vChatPanel')
+    const label = document.getElementById('vChatLabel')
+    const isOpen = panel.classList.contains('open')
+    if (isOpen) {
+      panel.classList.remove('open')
+      if (label) label.style.display = ''
+    } else {
+      panel.classList.add('open')
+      if (label) label.style.display = 'none'
+      // Effacer badge
+      _unread = false
+      const badge = document.getElementById('vChatBadge')
+      if (badge) badge.style.display = 'none'
+      // Focus input
+      setTimeout(() => document.getElementById('vChatInput')?.focus(), 150)
+    }
+  }
+
+  // Afficher le badge après 8s si le panel n'est pas ouvert
+  setTimeout(() => {
+    if (!document.getElementById('vChatPanel').classList.contains('open')) {
+      const badge = document.getElementById('vChatBadge')
+      if (badge) badge.style.display = 'flex'
+    }
+  }, 8000)
+})()
+</script>
+</body>
+</html>
