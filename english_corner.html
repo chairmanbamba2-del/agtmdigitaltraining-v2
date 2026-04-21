@@ -207,10 +207,23 @@ audio{display:none}
 .feedback.bad{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3);color:#fca5a5}
 .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.87);backdrop-filter:blur(10px);display:flex;align-items:flex-start;justify-content:center;padding:18px 14px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .25s}
 .modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:780px;overflow:hidden;transform:translateY(18px);transition:transform .3s;flex-shrink:0}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:980px;overflow:hidden;transform:translateY(18px);transition:transform .3s;flex-shrink:0}
 .modal-overlay.open .modal{transform:translateY(0)}
-.modal-video{position:relative;aspect-ratio:16/9;background:#000}
-.modal-video iframe{width:100%;height:100%;border:none;display:block}
+.modal-split{display:flex;gap:0;max-height:85vh;overflow:hidden}
+.modal-video-side{flex:3;display:flex;flex-direction:column;min-width:0}
+.modal-quiz-side{flex:2;border-left:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
+.video-container{flex:1;min-height:0;background:#000;position:relative}
+.video-container iframe{width:100%;height:100%;border:none;display:block}
+.video-info{padding:16px 20px;border-top:1px solid var(--border)}
+.quiz-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.quiz-content-container{flex:1;overflow-y:auto;padding:16px 20px}
+.modal-close{position:absolute;top:12px;right:12px;z-index:100;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.75);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;font-size:.9rem}
+.modal-close:hover{background:rgba(255,255,255,.15)}
+@media (max-width: 768px) {
+  .modal-split{flex-direction:column;max-height:90vh}
+  .modal-quiz-side{border-left:none;border-top:1px solid var(--border)}
+  .modal{max-width:95vw}
+}
 .modal-video-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bg)}
 .play-btn{width:54px;height:54px;border-radius:50%;background:var(--accent);display:grid;place-items:center;cursor:pointer;transition:transform .2s}
 .play-btn:hover{transform:scale(1.1)}
@@ -1039,24 +1052,30 @@ audio{display:none}
   <iframe id="vcMeetPipFrame" src="" allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-read; clipboard-write" referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:calc(100% - 28px);margin-top:28px;border:0"></iframe>
 </div>
 
-<!-- VIDEO MODAL -->
+<!-- VIDEO MODAL - SPLIT SCREEN DESIGN -->
 <div class="modal-overlay" id="videoModal" onclick="closeVideoModal(event)">
-  <div class="modal">
-    <div class="modal-video" style="position:relative">
-      <button class="modal-close" onclick="closeVideoModal({target:null})">✕</button>
-      <div id="modalPlayer"></div>
-    </div>
-    <div class="modal-body">
-      <div id="modalLevelChip" class="modal-level-chip"></div>
-      <div class="modal-title" id="modalTitle"></div>
-      <div class="modal-meta" id="modalMeta"></div>
-      <div class="quiz-section">
-        <div class="quiz-head">
-          <div class="quiz-title-label">🧠 Comprehension Quiz</div>
-          <div class="quiz-loading" id="quizLoading" style="display:none"><div class="spinner"></div>Generating…</div>
-        </div>
-        <div id="quizContent"></div>
+  <div class="modal modal-split">
+    <button class="modal-close" onclick="closeVideoModal({target:null})">✕</button>
+    
+    <!-- LEFT SIDE: VIDEO -->
+    <div class="modal-video-side">
+      <div class="video-container">
+        <div id="modalPlayer"></div>
       </div>
+      <div class="video-info">
+        <div id="modalLevelChip" class="modal-level-chip"></div>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-meta" id="modalMeta"></div>
+      </div>
+    </div>
+    
+    <!-- RIGHT SIDE: QUIZ -->
+    <div class="modal-quiz-side">
+      <div class="quiz-header">
+        <div class="quiz-title-label">🧠 Comprehension Quiz</div>
+        <div class="quiz-loading" id="quizLoading" style="display:none"><div class="spinner"></div>Generating…</div>
+      </div>
+      <div id="quizContent" class="quiz-content-container"></div>
     </div>
   </div>
 </div>
@@ -1247,16 +1266,12 @@ const VOCAB_DATA=[
   ]},
 ];
 
-const VIDEOS=[
-  {id:'dQw4w9WgXcQ',title:'Everyday Conversations — A2 Practice',channel:'BBC Learning English',level:'A2',cat:'Speaking',duration:'8:42',thumb:'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',emoji:'🎙️'},
-  {id:'arj7oStGLkU',title:'Present Perfect vs Simple Past',channel:'EnglishClass101',level:'B1',cat:'Grammar',duration:'12:15',thumb:'',emoji:'📝'},
-  {id:'ZPn3MBNt7Rc',title:'TOEIC Listening — Parts 3 & 4',channel:'TOEIC Channel',level:'B2',cat:'TOEIC',duration:'45:00',thumb:'',emoji:'🎯'},
-  {id:'Ks-_Mh1QhMc',title:'The Surprising Science of Happiness',channel:'TED',level:'C1',cat:'Listening',duration:'20:44',thumb:'https://i.ytimg.com/vi/Ks-_Mh1QhMc/hqdefault.jpg',emoji:'🎓'},
-  {id:'LKFuXETZUsI',title:'Business Vocabulary: Meetings & Presentations',channel:'Business English Pod',level:'B2',cat:'Vocabulary',duration:'15:30',thumb:'',emoji:'📚'},
-  {id:'G8owd4gHZ_c',title:'A1 Beginner: Numbers, Colors & Greetings',channel:'Learn English with TV Series',level:'A1',cat:'Vocabulary',duration:'6:20',thumb:'',emoji:'🌟'},
-  {id:'1SKb7EeHKlE',title:'6 Minute English — Climate Change',channel:'BBC Learning English',level:'B1',cat:'Listening',duration:'6:00',thumb:'',emoji:'👂'},
-  {id:'vwGpLBBOzAo',title:'The 44 Sounds of English',channel:"Rachel's English",level:'A2',cat:'Speaking',duration:'22:00',thumb:'',emoji:'🗣️'},
-];
+// YouTube Videos - Loaded dynamically with pagination
+let VIDEOS = []; // Will be populated from API
+let currentVideoPage = 1;
+const VIDEOS_PER_PAGE = 50;
+let totalVideos = 0;
+let isLoadingVideos = false;
 
 // Podcast sources — populated from /api/podcasts at runtime
 let _apiPodcastSources = [];
@@ -5419,5 +5434,101 @@ function vcqOnCheck() {
     </div>
   </div>
 </div>
+
+<!-- PAGINATION CONTROLS -->
+<div id="videoPagination" style="display:none; margin:20px auto; text-align:center; padding:15px;">
+  <button id="prevPageBtn" onclick="loadVideoPage(currentVideoPage - 1)" disabled style="padding:8px 16px; margin:0 5px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; cursor:pointer;">← Précédent</button>
+  <span id="pageInfo" style="margin:0 10px; font-size:0.9rem; color:var(--muted);">Page 1</span>
+  <button id="nextPageBtn" onclick="loadVideoPage(currentVideoPage + 1)" style="padding:8px 16px; margin:0 5px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; cursor:pointer;">Suivant →</button>
+  <div id="videoCount" style="margin-top:5px; font-size:0.8rem; color:var(--muted);">Chargement des vidéos...</div>
+</div>
+
+<script>
+// YouTube Pagination Functions
+async function loadVideoPage(page = 1) {
+  if (isLoadingVideos) return;
+  
+  isLoadingVideos = true;
+  const paginationEl = document.getElementById('videoPagination');
+  const prevBtn = document.getElementById('prevPageBtn');
+  const nextBtn = document.getElementById('nextPageBtn');
+  const pageInfo = document.getElementById('pageInfo');
+  const videoCount = document.getElementById('videoCount');
+  
+  // Show loading state
+  pageInfo.textContent = `Chargement page ${page}...`;
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+  
+  try {
+    const response = await fetch(`/.netlify/functions/english-corner-api?service=youtube&page=${page}&limit=${VIDEOS_PER_PAGE}`);
+    const data = await response.json();
+    
+    if (data.videos && data.videos.length > 0) {
+      VIDEOS = data.videos;
+      totalVideos = data.total || data.videos.length * 10; // Estimate if not provided
+      currentVideoPage = page;
+      
+      // Update UI
+      pageInfo.textContent = `Page ${page}`;
+      videoCount.textContent = `${totalVideos.toLocaleString()} vidéos disponibles`;
+      prevBtn.disabled = page <= 1;
+      nextBtn.disabled = data.videos.length < VIDEOS_PER_PAGE;
+      
+      // Show pagination if not already visible
+      if (paginationEl.style.display === 'none') {
+        paginationEl.style.display = 'block';
+      }
+      
+      // Refresh video grid
+      refreshVideoGrid();
+    } else {
+      console.error('No videos returned from API');
+      videoCount.textContent = 'Erreur de chargement des vidéos';
+    }
+  } catch (error) {
+    console.error('Error loading videos:', error);
+    videoCount.textContent = 'Erreur de connexion à l\'API';
+  } finally {
+    isLoadingVideos = false;
+  }
+}
+
+function refreshVideoGrid() {
+  const videoGrid = document.querySelector('.video-grid');
+  if (!videoGrid) return;
+  
+  // Clear existing videos
+  videoGrid.innerHTML = '';
+  
+  // Add new videos
+  VIDEOS.forEach(video => {
+    const videoCard = document.createElement('div');
+    videoCard.className = 'video-card';
+    videoCard.onclick = () => openVideoModal(video.id, video.title, video.channel, video.level, video.cat, video.duration);
+    
+    videoCard.innerHTML = `
+      <div class="video-thumb">
+        <img src="${video.thumb || `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}" alt="${video.title}" loading="lazy">
+        <div class="video-duration">${video.duration || '--:--'}</div>
+        <div class="video-play">▶</div>
+      </div>
+      <div class="video-info">
+        <div class="video-level-chip level-${video.level?.toLowerCase() || 'a1'}">${video.level || 'A1'}</div>
+        <div class="video-title">${video.emoji || '🎬'} ${video.title}</div>
+        <div class="video-channel">${video.channel || 'YouTube'}</div>
+        <div class="video-cat">${video.cat || 'General'}</div>
+      </div>
+    `;
+    
+    videoGrid.appendChild(videoCard);
+  });
+}
+
+// Load first page on initial load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => loadVideoPage(1), 1000);
+});
+</script>
 </body>
 </html>

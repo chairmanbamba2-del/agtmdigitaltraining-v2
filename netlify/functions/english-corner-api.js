@@ -39,6 +39,25 @@ async function sbUpsert(table, row) {
   } catch { /* cache write failure is non-fatal */ }
 }
 
+// Helper: emoji par catégorie
+function getEmojiForCategory(category) {
+  const emojiMap = {
+    'Grammar': '📝',
+    'Vocabulary': '📚',
+    'Speaking': '🗣️',
+    'Listening': '👂',
+    'Writing': '✏️',
+    'TOEIC': '🎯',
+    'Business': '💼',
+    'Pronunciation': '🔊',
+    'Conversation': '💬',
+    'Culture': '🌍',
+    'Exam': '📋',
+    'General': '🎬'
+  };
+  return emojiMap[category] || '🎬';
+}
+
 function fetchJson(url, options = {}) {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
@@ -78,24 +97,144 @@ exports.handler = async (event, context) => {
   const service = params.service;
 
   try {
-    // ── 1. YOUTUBE ──────────────────────────────────────────────
+    // ── 1. YOUTUBE (avec cache Supabase + pagination) ─────────────
     if (service === 'youtube') {
       const key = process.env.YOUTUBE_API_KEY;
       if (!key) {
         return {
           statusCode: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: 'YOUTUBE_API_KEY not configured', items: [] }),
+          body: JSON.stringify({ error: 'YOUTUBE_API_KEY not configured', videos: [], total: 0 }),
         };
       }
-      const q = encodeURIComponent(params.q || 'BBC Learning English grammar');
-      const maxResults = params.maxResults || '8';
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${q}&maxResults=${maxResults}&key=${key}`;
-      const data = await fetchJson(url);
+      
+      const page = parseInt(params.page) || 1;
+      const limit = parseInt(params.limit) || 50;
+      const offset = (page - 1) * limit;
+      
+      // 1. Vérifier cache Supabase d'abord
+      const cacheKey = `youtube_videos_page_${page}_limit_${limit}`;
+      const cached = await sbGet('api_cache', { key: cacheKey });
+      
+      if (cached && Date.now() - new Date(cached.updated_at).getTime() < CACHE_TTL_MS) {
+        // Cache valide (moins de 24h)
+        return {
+          statusCode: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            videos: cached.value.videos || [],
+            total: cached.value.total || 0,
+            page,
+            limit,
+            cached: true
+          }),
+        };
+      }
+      
+      // 2. Récupérer playlists depuis Supabase (table corner_content)
+      let playlists = [];
+      try {
+        const playlistsUrl = `${SB_URL}/rest/v1/corner_content?select=id,title,provider,level,topic,url&type=eq.playlist&active=eq.true&order=priority.desc`;
+        const playlistsData = await fetchJson(playlistsUrl, {
+          headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        });
+        playlists = Array.isArray(playlistsData) ? playlistsData : [];
+        
+        // Extraire playlist_id depuis l'URL YouTube
+        playlists = playlists.map(playlist => {
+          const url = playlist.url || '';
+          const playlistIdMatch = url.match(/list=([^&]+)/);
+          return {
+            ...playlist,
+            playlist_id: playlistIdMatch ? playlistIdMatch[1] : playlist.id,
+            channel: playlist.provider || 'EIP English In Practice',
+            category: playlist.topic || 'General'
+          };
+        }).filter(p => p.playlist_id);
+        
+        console.log(`Found ${playlists.length} playlists from corner_content`);
+      } catch (err) {
+        console.error('Error fetching playlists from corner_content:', err);
+      }
+      
+      // 3. Si pas de playlists, utiliser recherche par défaut
+      let allVideos = [];
+      let totalVideos = 0;
+      
+      if (playlists.length > 0) {
+        // Récupérer vidéos de chaque playlist (avec limite)
+        for (const playlist of playlists.slice(0, 5)) { // Max 5 playlists pour éviter quota
+          try {
+            const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=${Math.min(limit, 50)}&playlistId=${playlist.playlist_id}&key=${key}`;
+            const playlistData = await fetchJson(playlistUrl);
+            
+            if (playlistData.items && playlistData.items.length > 0) {
+              const playlistVideos = playlistData.items.map(item => ({
+                id: item.snippet.resourceId.videoId,
+                title: item.snippet.title,
+                channel: playlist.channel || item.snippet.channelTitle,
+                level: playlist.level || 'A2',
+                cat: playlist.category || 'Listening',
+                duration: '--:--', // YouTube ne donne pas duration ici
+                thumb: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                emoji: getEmojiForCategory(playlist.category)
+              }));
+              
+              allVideos = [...allVideos, ...playlistVideos];
+              totalVideos += playlistData.pageInfo?.totalResults || playlistVideos.length;
+            }
+          } catch (err) {
+            console.error(`Error fetching playlist ${playlist.playlist_id}:`, err);
+          }
+          
+          // Limiter le nombre total de vidéos
+          if (allVideos.length >= limit * 2) break;
+        }
+      } else {
+        // Fallback: recherche YouTube
+        const q = encodeURIComponent(params.q || 'BBC Learning English grammar');
+        const maxResults = Math.min(limit, 50);
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${q}&maxResults=${maxResults}&key=${key}`;
+        const data = await fetchJson(url);
+        
+        if (data.items) {
+          allVideos = data.items.map(item => ({
+            id: item.id.videoId,
+            title: item.snippet.title,
+            channel: item.snippet.channelTitle,
+            level: 'B1',
+            cat: 'General',
+            duration: '--:--',
+            thumb: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+            emoji: '🎬'
+          }));
+          totalVideos = data.pageInfo?.totalResults || allVideos.length;
+        }
+      }
+      
+      // 4. Pagination locale (car YouTube API a sa propre pagination)
+      const startIndex = offset % allVideos.length; // Pour simuler pagination infinie
+      const paginatedVideos = allVideos.slice(startIndex, startIndex + limit);
+      
+      // 5. Mettre en cache dans Supabase
+      if (paginatedVideos.length > 0) {
+        await sbUpsert('api_cache', {
+          key: cacheKey,
+          value: { videos: paginatedVideos, total: totalVideos },
+          updated_at: new Date().toISOString()
+        });
+      }
+      
       return {
         statusCode: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          videos: paginatedVideos,
+          total: totalVideos,
+          page,
+          limit,
+          cached: false
+        }),
       };
     }
 
