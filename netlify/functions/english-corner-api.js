@@ -408,7 +408,7 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // ── 6. YOUTUBE PLAYLIST ─────────────────────────────────────
+    // ── 6. YOUTUBE PLAYLIST (pagination complète) ─────────────────
     if (service === 'youtube-playlist') {
       const key = process.env.YOUTUBE_API_KEY;
       if (!key) {
@@ -427,12 +427,11 @@ exports.handler = async (event, context) => {
         };
       }
       const maxResults = Math.min(parseInt(params.maxResults || '50'), 50);
-      const pageToken  = params.pageToken || '';
       
-      // Clé de cache : service + playlistId + maxResults + pageToken
-      const cacheKey = `ytpl:${playlistId}:${maxResults}:${pageToken || 'first'}`;
+      // Clé de cache : playlistId uniquement (on fetch toutes les pages)
+      const cacheKey = `ytpl:${playlistId}:full`;
       
-      // ── 1. Vérifier le cache Supabase (24h) ─────────────────────
+      // ── 1. Vérifier le cache Supabase ────────────────────────────
       const cached = await sbGet('ec_api_cache', { cache_key: cacheKey });
       if (cached && cached.data && cached.cached_at) {
         const age = Date.now() - new Date(cached.cached_at).getTime();
@@ -445,40 +444,67 @@ exports.handler = async (event, context) => {
         }
       }
       
-      // ── 2. Appel YouTube API si cache absent/expiré ─────────────
-      const pageTokenParam = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
-      const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${encodeURIComponent(playlistId)}&maxResults=${maxResults}${pageTokenParam}&key=${key}`;
-      const data = await fetchJson(url);
+      // ── 2. Fetch toutes les pages via pagination ─────────────────
+      let allItems = [];
+      let nextPageToken = '';
+      let pageCount = 0;
+      const MAX_PAGES = 10; // 10 × 50 = 500 vidéos max
+      let totalResults = 0;
+      let lastError = null;
 
-      if (data._error) {
-        console.error('YouTube playlist API error:', playlistId, data._status, JSON.stringify(data.error).substring(0, 300));
+      do {
+        const pageTokenParam = nextPageToken ? `&pageToken=${encodeURIComponent(nextPageToken)}` : '';
+        const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${encodeURIComponent(playlistId)}&maxResults=${maxResults}${pageTokenParam}&key=${key}`;
+        const data = await fetchJson(url);
+
+        if (data._error) {
+          lastError = data;
+          console.error(`YouTube playlist page ${pageCount + 1} error:`, playlistId, data._status);
+          break;
+        }
+
+        if (data.items && data.items.length > 0) {
+          allItems = [...allItems, ...data.items];
+          totalResults = data.pageInfo?.totalResults || 0;
+        }
+        nextPageToken = data.nextPageToken || '';
+        pageCount++;
+      } while (nextPageToken && pageCount < MAX_PAGES);
+
+      if (allItems.length === 0 && lastError) {
+        console.error('YouTube playlist API error:', playlistId, lastError._status, JSON.stringify(lastError.error).substring(0, 300));
         return {
           statusCode: 502,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            error: data.error?.error?.message || `YouTube API error ${data._status}`,
-            yt_status: data._status,
+            error: lastError.error?.error?.message || `YouTube API error ${lastError._status}`,
+            yt_status: lastError._status,
             items: []
           }),
         };
       }
+
+      const response = {
+        items: allItems,
+        totalResults: totalResults || allItems.length,
+        nextPageToken: null,
+        pagesFetched: pageCount,
+      };
       
-      // ── 3. Sauvegarder dans le cache Supabase ──────────────────
-      if (!data._error && data.items) {
-        await sbUpsert('ec_api_cache', {
-          cache_key:  cacheKey,
-          data:       data,
-          cached_at:  new Date().toISOString(),
-          service:    'youtube',
-          query:      playlistId,
-          action:     'playlist',
-        });
-      }
+      // ── 3. Sauvegarder dans le cache ─────────────────────────────
+      await sbUpsert('ec_api_cache', {
+        cache_key:  cacheKey,
+        data:       response,
+        cached_at:  new Date().toISOString(),
+        service:    'youtube',
+        query:      playlistId,
+        action:     'playlist_full',
+      });
       
       return {
         statusCode: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'MISS' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(response),
       };
     }
 

@@ -1090,6 +1090,7 @@ async function loadPlaylistVideos(playlistId, num) {
   }
 
   try {
+    grid.innerHTML = '<div class="loading">⏳ Récupération de toutes les vidéos de la playlist ' + num + '...</div>'
     const res = await fetch('/.netlify/functions/english-corner-api?service=youtube-playlist&playlistId=' + playlistId + '&maxResults=50')
     if (!res.ok) throw new Error('Erreur HTTP ' + res.status)
     const text = await res.text()
@@ -1106,7 +1107,8 @@ async function loadPlaylistVideos(playlistId, num) {
       thumb: item.snippet?.thumbnails?.medium?.url || item.snippet?.thumbnails?.default?.url,
     })).filter(v => v.id)
     cacheSet('playlist_' + playlistId, allVideos)
-    document.getElementById('videoCount').textContent = 'Playlist ' + num + ' — ' + allVideos.length + ' vidéos'
+    const total = data.totalResults || allVideos.length
+    document.getElementById('videoCount').textContent = 'Playlist ' + num + ' — ' + allVideos.length + ' vidéos' + (total > allVideos.length ? ' / ' + total + ' totales' : '')
     applyVideoFilters()
   } catch(e) {
     console.warn('[Playlist] API unavailable, using fallback for playlist ' + num)
