@@ -7,14 +7,14 @@
 //  © 2026 AGTM Academy — Issa Bamba
 // ============================================================
 
+const { callLLM, extractText, getConfig } = require('./lib/llm-providers')
+
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
-const GROQ_API_URL      = 'https://api.groq.com/openai/v1/chat/completions'
 const SUPABASE_URL      = process.env.SUPABASE_URL
 const SUPABASE_SERVICE  = process.env.SUPABASE_SERVICE_KEY
 const ANTHROPIC_KEY     = process.env.ANTHROPIC_API_KEY
 const BRAVE_KEY         = process.env.BRAVE_SEARCH_API_KEY  || ''
 const TAVILY_KEY        = process.env.TAVILY_API_KEY        || ''
-const GROQ_KEY          = process.env.GROQ_API_KEY          || ''
 const TWILIO_ACCOUNT_SID    = process.env.TWILIO_ACCOUNT_SID      || ''  // Twilio Account SID (ACxxx...)
 const TWILIO_AUTH_TOKEN     = process.env.TWILIO_AUTH_TOKEN       || ''  // Twilio Auth Token
 const TWILIO_WHATSAPP_FROM  = process.env.TWILIO_WHATSAPP_FROM    || ''  // numéro expéditeur ex: +14155238886 (sandbox ou numéro approuvé)
@@ -110,15 +110,32 @@ async function loadAIConfig() {
 }
 
 // ── Connaissances pédagogiques ───────────────────────────────
-async function loadKnowledge(userNiveau) {
+async function loadKnowledge(userNiveau, userRole = 'etudiant') {
   const baseCategories = ['infos_ecole', 'pedagogie', 'faq', 'grammaire']
-  const params = 'select=categorie,niveau,titre,contenu&actif=eq.true&order=priorite.asc&limit=20'
+  const params = 'select=categorie,niveau,titre,contenu,role_min&actif=eq.true&order=priorite.asc&limit=30'
   const rows = await sbQuery('ai_knowledge', params)
+
+  // Hiérarchie des rôles pour filtrage RBAC
+  const ROLE_LEVEL = { admin: 5, secretaire: 4, directeur_pedagogique: 4, sous_directeur_pedagogique: 4, formateur: 3, enseignant: 3, etudiant: 1 }
+  const ROLE_MIN_MAP = { admin: 5, secretaire: 4, directeur_pedagogique: 4, sous_directeur_pedagogique: 4, formateur: 3, enseignant: 3, etudiant: 1, NULL: 0 }
+
+  const userLevel = ROLE_LEVEL[userRole] || 1
+
   const relevant = rows.filter(r => {
+    // Catégories de base : toujours accessibles
     if (baseCategories.includes(r.categorie)) return true
+
+    // Filtrage RBAC par role_min
+    if (r.role_min) {
+      const requiredLevel = ROLE_MIN_MAP[r.role_min] || 0
+      if (userLevel < requiredLevel) return false
+    }
+
+    // Filtrage par niveau CECRL
     if (!userNiveau || !r.niveau) return r.categorie !== 'exercices'
     return r.niveau === userNiveau || r.niveau === null
   })
+
   return relevant.map(r => `### ${r.titre}\n${r.contenu}`).join('\n\n')
 }
 
@@ -2773,8 +2790,14 @@ function getModel(tier, cfg) {
 // ── Sauvegarder la conversation ──────────────────────────────
 async function saveConversation(userId, sessionId, messages, assistantReply, model) {
   const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
-  if (lastUserMsg) await sbInsert('ai_conversations', { user_id: userId, session_id: sessionId, role: 'user', content: lastUserMsg.content, model_used: model }).catch(() => {})
-  if (assistantReply) await sbInsert('ai_conversations', { user_id: userId, session_id: sessionId, role: 'assistant', content: assistantReply, model_used: model }).catch(() => {})
+  if (lastUserMsg) {
+    sbInsert('ai_conversations', { user_id: userId, session_id: sessionId, role: 'user', content: lastUserMsg.content, model_used: model })
+      .catch(e => console.error('saveConversation user msg error:', e.message))
+  }
+  if (assistantReply) {
+    sbInsert('ai_conversations', { user_id: userId, session_id: sessionId, role: 'assistant', content: assistantReply, model_used: model })
+      .catch(e => console.error('saveConversation assistant msg error:', e.message))
+  }
 }
 
 // ── Normaliser les messages (alternance user/assistant) ───────
@@ -2802,34 +2825,31 @@ function normalizeMessages(messages) {
   return alternated
 }
 
-// ── Appel API Groq (rapide, OpenAI-compatible) ───────────────
-async function callGroq(messages, systemPrompt, maxTok = 1200) {
-  if (!GROQ_KEY) throw new Error('GROQ_KEY absent')
-  const body = {
-    model:       'llama-3.3-70b-versatile',
-    max_tokens:  maxTok,
-    temperature: 0.7,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...messages.map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : (m.content?.find?.(c => c.type === 'text')?.text || '') }))
-    ]
-  }
-  const res = await fetch(GROQ_API_URL, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+// ── Appel rapide via le module centralisé (DeepSeek ou Groq) ──
+async function callFastLLM(provider, model, validMessages, systemPrompt, maxTok) {
+  const result = await callLLM({
+    provider,
+    model: model || null,
+    messages: validMessages,
+    system: systemPrompt,
+    max_tokens: maxTok,
+    temperature: provider === 'groq' ? 0.7 : 0.3,
+    fallback_chain: false
   })
-  if (!res.ok) throw new Error('Groq API error: ' + res.status)
-  const data = await res.json()
-  const text = data.choices?.[0]?.message?.content || ''
-  if (!text) throw new Error('Groq: réponse vide')
-  return text
+  if (!result.success) {
+    const errs = result.errors ? result.errors.join(' | ') : 'unknown'
+    throw new Error(`${provider} fast-path failed: ${errs}`)
+  }
+  return { text: result.text, model: result.model_used, provider: provider }
 }
 
-// ── Appel API Anthropic ──────────────────────────────────────
+// ── Appel API Anthropic (gardé pour l'usage d'outils Claude) ───
 async function callClaude(model, maxTok, systemPrompt, messages, tools) {
   const body = { model, max_tokens: maxTok, system: systemPrompt, messages }
   if (tools && tools.length) body.tools = tools
+
+  const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY
+  if (!ANTHROPIC_KEY) throw new Error('ANTHROPIC_API_KEY not configured')
 
   const res = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
@@ -2845,6 +2865,26 @@ async function callClaude(model, maxTok, systemPrompt, messages, tools) {
     console.error('Anthropic API error:', res.status, errText)
     let detail = ''
     try { detail = JSON.parse(errText)?.error?.message || errText } catch { detail = errText }
+
+    // Rotation clé backup si 429/401
+    if (res.status === 429 || res.status === 401) {
+      const backupKey = process.env.ANTHROPIC_API_KEY_BACKUP
+      if (backupKey && backupKey !== ANTHROPIC_KEY) {
+        console.error('Rotating to backup Anthropic key')
+        const retryRes = await fetch(ANTHROPIC_API_URL, {
+          method: 'POST',
+          headers: {
+            'x-api-key':         backupKey,
+            'anthropic-version': '2023-06-01',
+            'content-type':      'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+        if (retryRes.ok) return retryRes.json()
+        const retryErrText = await retryRes.text().catch(() => '')
+        throw new Error(`API ${res.status}: ${detail.substring(0, 200)} (backup also failed)`)
+      }
+    }
     throw new Error(`API ${res.status}: ${detail.substring(0, 200)}`)
   }
   return res.json()
@@ -2876,7 +2916,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' }
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Méthode non autorisée' }) }
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE || !ANTHROPIC_KEY) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE) {
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration serveur incomplète' }) }
   }
 
@@ -2910,8 +2950,9 @@ exports.handler = async (event) => {
     }
   }
 
-  const { messages, session_id, user_profile, school_context, force_provider } = body
-  // force_provider: 'groq' | 'claude' | 'turbo' — surcharge le tier utilisateur côté moteur
+  const { messages, session_id, user_profile, school_context, force_provider, force_model } = body
+  // force_provider: 'groq' | 'claude' | 'turbo' | 'deepseek' — surcharge le provider
+  // force_model: override le modèle spécifique pour le chemin rapide
   if (!messages || !Array.isArray(messages) || !messages.length) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Messages requis' }) }
   }
@@ -2972,19 +3013,19 @@ exports.handler = async (event) => {
     const lastMsg    = (validMessages[validMessages.length - 1]?.content || '').toLowerCase()
     const needsTool  = TOOL_HINTS.some(k => lastMsg.includes(k))
 
-    // force_provider surcharge le tier : 'groq' = toujours Groq, 'claude' = toujours Claude
-    // 'turbo' = Claude pour les outils + Groq pour la synthèse finale (déjà géré dans round 3)
+    // force_provider surcharge le tier : 'deepseek' | 'groq' | 'claude' | 'turbo'
+    // 'turbo' = Claude pour les outils + Groq pour la synthèse finale
     const fp = force_provider || ''
-    const useGroq = GROQ_KEY && !needsTool && (
+    const useDeepSeek = !needsTool && fp === 'deepseek'
+    const useGroq = !needsTool && !useDeepSeek && (
       fp === 'groq' ||
       (!fp && (aiTier === 'groq' || role === 'etudiant'))
     )
     const forceClaude = fp === 'claude' || fp === 'turbo'
-    // En mode turbo, Groq synthétise le round final (géré dans les rounds 2/3 ci-dessous)
-    const useGroqFinalSynth = GROQ_KEY && (fp === 'turbo' || (!fp && GROQ_KEY && aiTier !== 'groq'))
+    const useGroqFinalSynth = (fp === 'turbo' || (!fp && aiTier !== 'groq'))
 
     // ── Prompt système ────────────────────────────────────
-    const knowledge    = await loadKnowledge(userInfo.niveau)
+    const knowledge    = await loadKnowledge(userInfo.niveau, role)
     const systemPrompt = buildSystemPrompt(
       role, userInfo, knowledge,
       cfg.instructions_admin || '', cfg,
@@ -3002,18 +3043,41 @@ exports.handler = async (event) => {
     let sources      = []
     let adminActions = []
 
-    // ── Chemin rapide : Groq seul ─────────────────────────
-    if (useGroq) {
+    // ── Chemin rapide : DeepSeek seul ─────────────────────
+    if (useDeepSeek) {
       try {
-        replyText = await callGroq(validMessages, systemPrompt, maxTok)
+        const dsModel = force_model || null
+        const fastResult = await callFastLLM('deepseek', dsModel, validMessages, systemPrompt, maxTok)
+        replyText = fastResult.text
         if (replyText) {
           const sessionId = session_id || `sess_${authUser.id}_${Date.now()}`
-          saveConversation(authUser.id, sessionId, validMessages, replyText, 'groq-llama-3.3-70b').catch(() => {})
+          saveConversation(authUser.id, sessionId, validMessages, replyText, fastResult.model)
           return {
             statusCode: 200, headers,
             body: JSON.stringify({
               reply: replyText, tier: aiTier, sources: [], admin_actions: [],
-              search_queries: [], search_engines: [], model_used: 'groq-llama-3.3-70b'
+              search_queries: [], search_engines: [], model_used: fastResult.model
+            })
+          }
+        }
+      } catch(dsErr) {
+        console.error('DeepSeek fast-path failed, falling back to Claude:', dsErr.message)
+      }
+    }
+
+    // ── Chemin rapide : Groq seul ─────────────────────────
+    if (useGroq) {
+      try {
+        const fastResult = await callFastLLM('groq', null, validMessages, systemPrompt, maxTok)
+        replyText = fastResult.text
+        if (replyText) {
+          const sessionId = session_id || `sess_${authUser.id}_${Date.now()}`
+          saveConversation(authUser.id, sessionId, validMessages, replyText, fastResult.model)
+          return {
+            statusCode: 200, headers,
+            body: JSON.stringify({
+              reply: replyText, tier: aiTier, sources: [], admin_actions: [],
+              search_queries: [], search_engines: [], model_used: fastResult.model
             })
           }
         }
@@ -3044,10 +3108,11 @@ exports.handler = async (event) => {
         try {
           if (useGroqFinalSynth) {
             const toolSummary = tr2.map(t => t.content || '').join('\n')
-            replyText = await callGroq(
+            const groqResult = await callFastLLM('groq', null,
               [...msgs3.slice(-4), { role: 'user', content: `Données récupérées :\n${toolSummary}\n\nRéponds maintenant à la question initiale de l'utilisateur.` }],
               systemPrompt, maxTok
             )
+            replyText = groqResult.text
           }
           if (!replyText) {
             const resp3 = await callClaude(model, maxTok, systemPrompt, msgs3, [])
@@ -3062,10 +3127,11 @@ exports.handler = async (event) => {
         if (useGroqFinalSynth && rawReply && fp === 'turbo') {
           try {
             const toolSummary = tr1.map(t => t.content || '').join('\n')
-            replyText = await callGroq(
+            const groqResult = await callFastLLM('groq', null,
               [...msgs2.slice(-4), { role: 'user', content: `Données récupérées :\n${toolSummary}\n\nRéponds maintenant à la question initiale de l'utilisateur.` }],
               systemPrompt, maxTok
             )
+            replyText = groqResult.text
           } catch(_) { replyText = rawReply }
         } else {
           replyText = rawReply
@@ -3080,7 +3146,7 @@ exports.handler = async (event) => {
     // Déterminer le modèle effectivement utilisé pour les badges frontend
     const modelUsed = (useGroqFinalSynth && fp === 'turbo') ? 'turbo-claude+groq' : model
     const sessionId = session_id || `sess_${authUser.id}_${Date.now()}`
-    saveConversation(authUser.id, sessionId, validMessages, replyText, modelUsed).catch(() => {})
+    saveConversation(authUser.id, sessionId, validMessages, replyText, modelUsed)
 
     // Séparer les actions marketing des autres actions admin
     const marketingActions = adminActions.filter(a => a.type === 'marketing_modifie').flatMap(a => a.modifications || [])

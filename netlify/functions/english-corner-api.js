@@ -4,12 +4,13 @@
 // Cache Supabase : TTL 24h (listenotes) pour économiser les quotas API
 
 const https = require('https');
+const { callLLM } = require('./lib/llm-providers');
 
 // ── Supabase REST helpers ─────────────────────────────────────────
 const SB_URL   = process.env.SUPABASE_URL          || '';
 // Service key pour écriture cache (upsert) — lecture aussi
 const SB_KEY   = process.env.SUPABASE_SERVICE_KEY  || process.env.SUPABASE_ANON || '';
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 heures
+const CACHE_TTL_MS = 1 * 60 * 60 * 1000; // 1 heure (était 24h)
 
 async function sbGet(table, filters) {
   if (!SB_URL || !SB_KEY) return null;
@@ -66,16 +67,24 @@ function fetchJson(url, options = {}) {
       path: urlObj.pathname + urlObj.search,
       method: options.method || 'GET',
       headers: options.headers || {},
+      timeout: 15000
     };
     const req = https.request(reqOptions, (res) => {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
+        if (res.statusCode >= 400) {
+          let parsed = {};
+          try { parsed = JSON.parse(data) } catch {}
+          resolve({ _error: true, _status: res.statusCode, error: parsed, _raw: data.substring(0, 500) });
+          return;
+        }
         try { resolve(JSON.parse(data)); }
-        catch (e) { resolve({ _raw: data }); }
+        catch (e) { resolve({ _raw: data, _status: res.statusCode }); }
       });
     });
     req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout (15s)')); });
     if (options.body) req.write(options.body);
     req.end();
   });
@@ -101,10 +110,25 @@ exports.handler = async (event, context) => {
     if (service === 'youtube') {
       const key = process.env.YOUTUBE_API_KEY;
       if (!key) {
+        // Sans clé YouTube, essayer de servir depuis corner_content
+        let dbVideos = [];
+        try {
+          const vUrl = `${SB_URL}/rest/v1/corner_content?select=id,title,level,url,topic&type=eq.video&active=eq.true&order=priority.desc&limit=2000`;
+          const vData = await fetchJson(vUrl, {
+            headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+          });
+          dbVideos = Array.isArray(vData) ? vData.map(v => ({
+            id: v.url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/|^)([a-zA-Z0-9_-]{11})/)?.[1] || v.id,
+            title: v.title || '',
+            level: v.level || 'B1',
+            channel: v.topic || 'EIP English In Practice',
+            thumb: `https://i.ytimg.com/vi/${v.url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/|^)([a-zA-Z0-9_-]{11})/)?.[1] || v.id}/mqdefault.jpg`
+          })) : [];
+        } catch(e) { /* silent */ }
         return {
           statusCode: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: 'YOUTUBE_API_KEY not configured', videos: [], total: 0 }),
+          body: JSON.stringify({ videos: dbVideos, total: dbVideos.length, page: 1, limit: dbVideos.length }),
         };
       }
       
@@ -162,34 +186,44 @@ exports.handler = async (event, context) => {
       let totalVideos = 0;
       
       if (playlists.length > 0) {
-        // Récupérer vidéos de chaque playlist (avec limite)
-        for (const playlist of playlists.slice(0, 5)) { // Max 5 playlists pour éviter quota
+        // Récupérer vidéos de chaque playlist avec pagination YouTube
+        const MAX_VIDEOS_TOTAL = 2000; // Supporte jusqu'à 2000 vidéos
+        for (const playlist of playlists) { // Toutes les playlists, plus de limite à 5
+          if (allVideos.length >= MAX_VIDEOS_TOTAL) break;
           try {
-            const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=${Math.min(limit, 50)}&playlistId=${playlist.playlist_id}&key=${key}`;
-            const playlistData = await fetchJson(playlistUrl);
-            
-            if (playlistData.items && playlistData.items.length > 0) {
-              const playlistVideos = playlistData.items.map(item => ({
-                id: item.snippet.resourceId.videoId,
-                title: item.snippet.title,
-                channel: playlist.channel || item.snippet.channelTitle,
-                level: playlist.level || 'A2',
-                cat: playlist.category || 'Listening',
-                duration: '--:--', // YouTube ne donne pas duration ici
-                thumb: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-                emoji: getEmojiForCategory(playlist.category)
-              }));
+            let nextPageToken = '';
+            let retries = 0;
+            do {
+              const pageTokenParam = nextPageToken ? `&pageToken=${nextPageToken}` : '';
+              const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=50&playlistId=${playlist.playlist_id}&key=${key}${pageTokenParam}`;
+              const playlistData = await fetchJson(playlistUrl);
               
-              allVideos = [...allVideos, ...playlistVideos];
-              totalVideos += playlistData.pageInfo?.totalResults || playlistVideos.length;
-            }
+              if (playlistData.items && playlistData.items.length > 0) {
+                const playlistVideos = playlistData.items.map(item => ({
+                  id: item.snippet.resourceId.videoId,
+                  title: item.snippet.title,
+                  channel: playlist.channel || item.snippet.channelTitle,
+                  level: playlist.level || 'A2',
+                  cat: playlist.category || 'Listening',
+                  duration: '--:--',
+                  thumb: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                  emoji: getEmojiForCategory(playlist.category)
+                }));
+                
+                allVideos = [...allVideos, ...playlistVideos];
+                if (!totalVideos) totalVideos = playlistData.pageInfo?.totalResults || 0;
+                nextPageToken = playlistData.nextPageToken || '';
+              } else {
+                nextPageToken = '';
+              }
+              retries++;
+              if (allVideos.length >= MAX_VIDEOS_TOTAL) break;
+            } while (nextPageToken && retries < 40); // Max 40 pages × 50 = 2000 vidéos par playlist
           } catch (err) {
             console.error(`Error fetching playlist ${playlist.playlist_id}:`, err);
           }
-          
-          // Limiter le nombre total de vidéos
-          if (allVideos.length >= limit * 2) break;
         }
+        if (!totalVideos) totalVideos = allVideos.length;
       } else {
         // Fallback: recherche YouTube
         const q = encodeURIComponent(params.q || 'BBC Learning English grammar');
@@ -212,8 +246,8 @@ exports.handler = async (event, context) => {
         }
       }
       
-      // 4. Pagination locale (car YouTube API a sa propre pagination)
-      const startIndex = offset % allVideos.length; // Pour simuler pagination infinie
+      // 4. Pagination locale (découpage propre sans wrap-around)
+      const startIndex = Math.min(offset, Math.max(0, allVideos.length - 1));
       const paginatedVideos = allVideos.slice(startIndex, startIndex + limit);
       
       // 5. Mettre en cache dans Supabase
@@ -344,17 +378,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // ── 5. CLAUDE QUIZ ──────────────────────────────────────────
+    // ── 5. AI QUIZ (via callLLM: Claude → DeepSeek → Groq) ────────
     if (service === 'claude-quiz') {
-      const key = process.env.ANTHROPIC_API_KEY;
-      if (!key) {
-        return {
-          statusCode: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured', text: '' }),
-        };
-      }
-
       let body;
       try {
         body = JSON.parse(event.body || '{}');
@@ -364,30 +389,22 @@ exports.handler = async (event, context) => {
 
       const prompt = body.prompt || 'Generate 3 English comprehension questions.';
 
-      const requestBody = JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1200,
+      const result = await callLLM({
+        provider: 'auto',
         messages: [{ role: 'user', content: prompt }],
+        system: 'You are an expert English teacher. Generate the requested content.',
+        max_tokens: 1200,
+        temperature: 0.7
       });
 
-      const data = await fetchJson('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
-        },
-        body: requestBody,
-      });
-
-      const text = data.content && data.content[0] && data.content[0].text
-        ? data.content[0].text
-        : (data.error ? data.error.message : 'No response generated.');
+      const text = result.success
+        ? result.text
+        : 'No response generated. Please try again.';
 
       return {
         statusCode: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, provider: result.provider_used, model: result.model_used }),
       };
     }
 
@@ -432,9 +449,22 @@ exports.handler = async (event, context) => {
       const pageTokenParam = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
       const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${encodeURIComponent(playlistId)}&maxResults=${maxResults}${pageTokenParam}&key=${key}`;
       const data = await fetchJson(url);
+
+      if (data._error) {
+        console.error('YouTube playlist API error:', playlistId, data._status, JSON.stringify(data.error).substring(0, 300));
+        return {
+          statusCode: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            error: data.error?.error?.message || `YouTube API error ${data._status}`,
+            yt_status: data._status,
+            items: []
+          }),
+        };
+      }
       
       // ── 3. Sauvegarder dans le cache Supabase ──────────────────
-      if (!data.error && data.items) {
+      if (!data._error && data.items) {
         await sbUpsert('ec_api_cache', {
           cache_key:  cacheKey,
           data:       data,
@@ -452,11 +482,34 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // ── 7. DICTIONARY (WordReference proxy) ─────────────────────
+    if (service === 'dictionary') {
+      const word = params.word || '';
+      const dictType = params.type || 'bilingue';
+      if (!word) {
+        return { statusCode: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Missing word parameter' }) };
+      }
+      try {
+        if (dictType === 'bilingue') {
+          const wrKey = process.env.WORDREFERENCE_API_KEY || '85921';
+          const wrUrl = `https://api.wordreference.com/0.8/${wrKey}/json/enfr/${encodeURIComponent(word)}`;
+          const wrRes = await fetchJson(wrUrl);
+          return { statusCode: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify(wrRes) };
+        } else {
+          const dictUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
+          const dictRes = await fetchJson(dictUrl);
+          return { statusCode: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify(dictRes) };
+        }
+      } catch (e) {
+        return { statusCode: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: e.message }) };
+      }
+    }
+
     // ── Unknown service ─────────────────────────────────────────
     return {
       statusCode: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: `Unknown service: ${service}. Supported: youtube, youtube-playlist, news, merriam, listenotes, claude-quiz` }),
+      body: JSON.stringify({ error: `Unknown service: ${service}. Supported: youtube, youtube-playlist, news, merriam, listenotes, claude-quiz, dictionary` }),
     };
 
   } catch (err) {

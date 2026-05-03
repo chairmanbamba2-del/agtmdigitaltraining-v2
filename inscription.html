@@ -19,12 +19,12 @@
     ══════════════════════════════════════════════ */
     :root {
       /* Couleurs marque */
-      --gold:         #C8960C;
-      --gold-light:   #E8B84B;
-      --gold-dark:    #A07008;
-      --gold-bg:      rgba(200,150,12,.12);
-      --sapphire:     #2E7DD1;
-      --sapphire-lt:  #4A90D9;
+      --gold:         #E8941A;
+      --gold-light:   #F5B942;
+      --gold-dark:    #C77D1A;
+      --gold-bg:      rgba(232,148,26,.12);
+      --sapphire:     #0D2D52;
+      --sapphire-lt:  #1B4F8A;
       --danger:       #E04A4A;
       --success:      #27AE60;
 
@@ -32,20 +32,20 @@
       --h-bg:         #0A1520;
       --h-mid:        #0E1E34;
       --h-gray:       #8A9EAE;
-      --h-border:     #1E3050;
+      --h-border:     #1E3A5F;
 
       /* Corps du formulaire — thème sombre */
       --body-bg:      #09111E;
       --card-bg:      linear-gradient(135deg,#152540 0%,#241C08 100%);
-      --card-border:  rgba(200,150,12,.2);
+      --card-border:  rgba(232,148,26,.2);
       --card-shadow:  0 4px 20px rgba(0,0,0,.4);
-      --head-bg:      linear-gradient(90deg,#1C3258 0%,#2C2208 100%);
+      --head-bg:      linear-gradient(90deg,#132540 0%,#2C2208 100%);
       --text-main:    #E2D8C0;
       --text-sub:     #8AAAC0;
       --text-muted:   #6A8AAA;
-      --input-bg:     linear-gradient(135deg,#0B1828 0%,#1C1408 100%);
+      --input-bg:     linear-gradient(135deg,#080F1A 0%,#1C1408 100%);
       --input-bd:     #3A3A28;
-      --input-focus:  #C8960C;
+      --input-focus:  #E8941A;
       --pill-bg:      rgba(21,37,64,.5);
       --pill-bd:      #3A3A28;
     }
@@ -62,7 +62,7 @@
       min-height: 100vh;
     }
     ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#09111E}
-    ::-webkit-scrollbar-thumb{background:linear-gradient(#2A3F58,#3A2A10);border-radius:3px}
+    ::-webkit-scrollbar-thumb{background:linear-gradient(#1E3A5F,#3A2A10);border-radius:3px}
 
     /* ══ HEADER ══════════════════════════════════ */
     header {
@@ -89,7 +89,7 @@
       align-items: center; justify-content: center;
       font-weight: 900; color: #0A1520;
       flex-shrink: 0; line-height: 1;
-      box-shadow: 0 4px 16px rgba(200,150,12,.4);
+      box-shadow: 0 4px 16px rgba(232,148,26,.4);
     }
     .brand-badge .badge-main { font-size: 22px; letter-spacing: -1px; }
     .brand-badge .badge-sub  { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; opacity: .8; }
@@ -113,8 +113,8 @@
       align-items: center;
       gap: 6px;
       margin-top: 6px;
-      background: rgba(200,150,12,.12);
-      border: 1px solid rgba(200,150,12,.35);
+      background: rgba(232,148,26,.12);
+      border: 1px solid rgba(232,148,26,.35);
       border-radius: 20px;
       padding: 4px 14px;
       font-size: .73rem;
@@ -254,7 +254,7 @@
     input::placeholder { color: #4A6A8A; }
     input:focus, select:focus, textarea:focus {
       border-color: var(--input-focus);
-      box-shadow: 0 0 0 3px rgba(200,150,12,.2);
+      box-shadow: 0 0 0 3px rgba(232,148,26,.2);
     }
     input.invalid {
       border-color: var(--danger) !important;
@@ -267,7 +267,7 @@
       background-position: right 12px center;
       padding-right: 34px;
     }
-    select option { background: #0D1B2A; color: var(--text-main); }
+    select option { background: #080F1A; color: var(--text-main); }
     textarea { min-height: 70px; resize: vertical; }
 
     /* ══ RADIO & CHECKBOX ═════════════════════════ */
@@ -298,7 +298,7 @@
     .radio-pill label:hover,
     .check-pill label:hover {
       border-color: var(--gold);
-      background: rgba(200,150,12,.08);
+      background: rgba(232,148,26,.08);
       color: var(--text-main);
     }
 
@@ -323,17 +323,17 @@
     }
     .niveau-opt .badge {
       font-size: .73rem; font-weight: 800;
-      background: rgba(26,50,88,.8); color: #6AABF0;
+      background: rgba(19,37,64,.8); color: #1B4F8A;
       border-radius: 4px; padding: 2px 8px; margin-bottom: 4px;
     }
     .niveau-opt input:checked + label {
       border-color: var(--gold); background: var(--gold-bg); color: var(--gold-light);
     }
     .niveau-opt input:checked + label .badge { background: var(--gold); color: #0A1520; }
-    .niveau-opt label:hover { border-color: var(--gold); background: rgba(200,150,12,.08); }
+    .niveau-opt label:hover { border-color: var(--gold); background: rgba(232,148,26,.08); }
 
     /* ══ MISC ═════════════════════════════════════ */
-    .sep { border: none; border-top: 1px solid rgba(200,150,12,.15); margin: 18px 0; }
+    .sep { border: none; border-top: 1px solid rgba(232,148,26,.15); margin: 18px 0; }
 
     .info-tip {
       display: flex; gap: 8px; align-items: flex-start;
@@ -341,14 +341,14 @@
       border: 1px solid rgba(74,144,217,.25);
       border-radius: 8px;
       padding: 10px 14px;
-      font-size: .78rem; color: #6AABF0;
+      font-size: .78rem; color: #1B4F8A;
       margin-bottom: 14px;
     }
     .info-tip .tip-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
 
     .engagement-box {
       background: rgba(28,20,8,.6);
-      border: 1.5px solid rgba(200,150,12,.4);
+      border: 1.5px solid rgba(232,148,26,.4);
       border-radius: 10px;
       padding: 16px 18px;
       display: flex; gap: 14px; align-items: flex-start;
@@ -370,9 +370,9 @@
       font-size: .96rem; font-weight: 800; font-family: inherit;
       padding: 14px 52px; cursor: pointer; letter-spacing: .5px;
       transition: background .2s, transform .1s, box-shadow .2s;
-      box-shadow: 0 4px 20px rgba(200,150,12,.35);
+      box-shadow: 0 4px 20px rgba(232,148,26,.35);
     }
-    .btn-submit:hover { background: var(--gold-light); box-shadow: 0 6px 28px rgba(200,150,12,.5); }
+    .btn-submit:hover { background: var(--gold-light); box-shadow: 0 6px 28px rgba(232,148,26,.5); }
     .btn-submit:active { transform: scale(.97); }
     .btn-submit:disabled { background: #2A3A50; color: #5A7090; cursor: not-allowed; box-shadow: none; }
     .required-note { font-size: .74rem; color: var(--text-muted); margin-top: 10px; }
@@ -397,7 +397,7 @@
     .footer-line { font-size: .78rem; color: var(--h-gray); line-height: 2; }
     .footer-line .gold  { color: var(--gold); font-weight: 700; }
     .footer-line .blue  { color: var(--sapphire-lt); }
-    .footer-line .pipe  { color: #2A3F58; margin: 0 6px; }
+    .footer-line .pipe  { color: #1E3A5F; margin: 0 6px; }
 
     /* ══ SPINNER ══════════════════════════════════ */
     .spin {
@@ -733,7 +733,7 @@
     <span class="pipe">|</span>
     Abidjan, Côte d'Ivoire
   </div>
-  <div class="footer-line" style="margin-top:4px;font-size:.71rem;color:#3A5570">
+  <div class="footer-line" style="margin-top:4px;font-size:.71rem;color:#8A9AB5">
     <em>Practice makes perfect.</em>
     <span class="pipe">|</span>
     Formulaire sécurisé — Données protégées via Supabase
@@ -869,7 +869,7 @@
            Votre fiche a bien été reçue par l'équipe <strong>AGTM Digital Academy</strong>.<br>
            Nous vous contacterons dans les <strong>24 à 48 heures</strong> pour confirmer
            votre inscription et vous communiquer les détails pratiques.<br><br>
-           <em style="color:#2E7DD1">📞 Pour toute urgence : +225 07 09 26 98 80</em>`);
+           <em style="color:#0D2D52">📞 Pour toute urgence : +225 07 09 26 98 80</em>`);
         e.target.reset();
         updatePreview();
         document.getElementById("nv_b1").checked = true;

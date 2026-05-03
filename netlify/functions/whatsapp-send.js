@@ -12,6 +12,11 @@ const TWILIO_AUTH_TOKEN      = process.env.TWILIO_AUTH_TOKEN           || ''
 const TWILIO_WHATSAPP_FROM   = process.env.TWILIO_WHATSAPP_FROM        || ''
 const TWILIO_TEMPLATE_ETUDIANT = process.env.TWILIO_TEMPLATE_ETUDIANT  || ''
 const TWILIO_TEMPLATE_NOUVEAU  = process.env.TWILIO_TEMPLATE_NOUVEAU   || ''
+const TWILIO_TEMPLATE_RAPPEL_PAIEMENT  = process.env.TWILIO_TEMPLATE_RAPPEL_PAIEMENT  || ''
+const TWILIO_TEMPLATE_DEVOIR_PUBLIE    = process.env.TWILIO_TEMPLATE_DEVOIR_PUBLIE    || ''
+const TWILIO_TEMPLATE_PROMO_MARKETING  = process.env.TWILIO_TEMPLATE_PROMO_MARKETING  || ''
+const TWILIO_TEMPLATE_CERTIFICAT_DISPONIBLE = process.env.TWILIO_TEMPLATE_CERTIFICAT_DISPONIBLE || ''
+const TWILIO_TEMPLATE_RAPPEL_ABONNEMENT = process.env.TWILIO_TEMPLATE_RAPPEL_ABONNEMENT || ''
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -63,17 +68,19 @@ exports.handler = async (event) => {
     if (!useTemplate && !message?.trim()) {
       return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Message requis (mode texte libre)' }) }
     }
-    if (useTemplate && template !== 'etudiant' && template !== 'nouveau') {
-      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Template invalide — choisir "etudiant" ou "nouveau"' }) }
+    const VALID_TEMPLATES = ['etudiant','nouveau','rappel_paiement','devoir_publie','promo_marketing','certificat_disponible','rappel_abonnement','note_etudiant']
+    if (useTemplate && !VALID_TEMPLATES.includes(template)) {
+      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: `Template "${template}" invalide` }) }
     }
 
     // ── Normaliser le numéro (Côte d'Ivoire +225) ─────────────
-    let phone = telephone.replace(/[\s\-().+]/g, '')
-    if (phone.startsWith('00225'))                          phone = phone.slice(2)
-    else if (phone.startsWith('225') && phone.length >= 11) { /* déjà ok */ }
-    else if (phone.startsWith('0') && phone.length === 10)  phone = '225' + phone
-    else if (phone.length === 9)                            phone = '2250' + phone
-    phone = '+' + phone.replace(/^\+/, '')
+    let phone = telephone.replace(/[\s\-().]/g, '')
+    if (phone.startsWith('+')) phone = phone.substring(1)
+    phone = phone.replace(/^00/, '')
+    if (phone.startsWith('225')) { /* déjà bon */ }
+    else if (phone.startsWith('0')) phone = '225' + phone.substring(1)  // supprime le 0 local
+    else phone = '225' + phone
+    phone = '+' + phone
 
     const from        = TWILIO_WHATSAPP_FROM.replace(/\s/g, '').replace(/^whatsapp:/, '')
     const credentials = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64')
@@ -85,7 +92,16 @@ exports.handler = async (event) => {
     })
 
     if (useTemplate) {
-      const contentSid = template === 'etudiant' ? TWILIO_TEMPLATE_ETUDIANT : TWILIO_TEMPLATE_NOUVEAU
+      const SID_MAP = {
+        etudiant:        TWILIO_TEMPLATE_ETUDIANT,
+        nouveau:         TWILIO_TEMPLATE_NOUVEAU,
+        rappel_paiement: TWILIO_TEMPLATE_RAPPEL_PAIEMENT,
+        devoir_publie:   TWILIO_TEMPLATE_DEVOIR_PUBLIE,
+        promo_marketing: TWILIO_TEMPLATE_PROMO_MARKETING,
+        certificat_disponible: TWILIO_TEMPLATE_CERTIFICAT_DISPONIBLE,
+        rappel_abonnement: TWILIO_TEMPLATE_RAPPEL_ABONNEMENT
+      }
+      const contentSid = SID_MAP[template] || ''
       if (!contentSid) return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: `Template "${template}" non configuré — ajoutez TWILIO_TEMPLATE_${template.toUpperCase()} dans Netlify` }) }
       params.append('ContentSid', contentSid)
       if (variables && Object.keys(variables).length > 0) {

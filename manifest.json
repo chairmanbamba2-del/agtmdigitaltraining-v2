@@ -2,7 +2,7 @@
   "name": "AGTM Digital Academy",
   "short_name": "AGTM",
   "description": "Plateforme numérique de gestion pédagogique et administrative — École d'anglais EIP English In Practice, Abidjan",
-  "start_url": "/dashboard.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "browser"],

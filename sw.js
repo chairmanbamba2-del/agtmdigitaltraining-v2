@@ -4,16 +4,14 @@
 //  © 2026 AGTM Academy — Issa Bamba
 // ============================================================
 
-const CACHE_VERSION   = 'v2'
+const CACHE_VERSION   = 'v8'
 const CACHE_STATIC    = `agtm-static-${CACHE_VERSION}`
 const CACHE_PAGES     = `agtm-pages-${CACHE_VERSION}`
 const CACHE_CDN       = `agtm-cdn-${CACHE_VERSION}`
 
 // ── Pages et ressources à pré-charger au premier install ────
 const PRECACHE_PAGES = [
-  '/dashboard.html',
   '/index.html',
-  '/vitrine.html',
   '/offline.html',
   '/manifest.json',
   '/icons/icon.svg',
@@ -51,7 +49,9 @@ function isCDN(url) {
 
 function isLocalPage(url, origin) {
   if (!url.startsWith(origin)) return false
-  const path = url.replace(origin, '')
+  // En localhost : pas de cache SW (évite les versions obsolètes)
+  if (origin.includes('localhost') || origin.includes('127.0.0.1')) return false
+  const path = url.replace(origin, '').split('?')[0].split('#')[0]
   return path.endsWith('.html') || path === '/' || path === ''
 }
 

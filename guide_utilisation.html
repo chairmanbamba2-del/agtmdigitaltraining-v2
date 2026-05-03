@@ -1388,13 +1388,13 @@
     <div class="page-icon">🤖</div>
     <div>
       <div class="page-title" style="color:#BDC3E7">15. Assistant IA — AGTM AI</div>
-      <div class="page-desc">Assistante pédagogique personnelle propulsée par Claude (Anthropic)</div>
+      <div class="page-desc">Assistante pédagogique personnelle multi-moteur (DeepSeek / Claude / Groq)</div>
     </div>
   </div>
 
   <h2 class="section">15.1 Présentation</h2>
   <p>AGTM AI est l'assistante pédagogique intelligente intégrée à la plateforme AGTM Digital Academy. Elle est accessible depuis l'onglet <strong>🤖 Assistant IA</strong> du tableau de bord, pour tous les rôles (étudiants, formateurs, secrétaire, direction, admin).</p>
-  <p>L'IA est propulsée par les modèles <strong>Claude d'Anthropic</strong> (les mêmes que Claude.ai) et adaptée au contexte pédagogique de l'AGTM grâce à une base de connaissances interne (programme, FAQ, règles de grammaire, etc.).</p>
+  <p>L'IA est propulsée par <strong>DeepSeek</strong> (moteur par défaut, économique) ou <strong>Claude d'Anthropic</strong> ou <strong>Groq</strong> au choix de l'utilisateur. Un sélecteur de fournisseur est accessible dans l'interface pour basculer manuellement entre les moteurs. L'assistant est adapté au contexte pédagogique de l'AGTM grâce à une base de connaissances interne (programme, FAQ, règles de grammaire, etc.).</p>
 
   <div class="tip">
     <strong>Langue :</strong> L'IA répond <strong>toujours en français</strong> par défaut, sauf si vous lui écrivez en anglais. Pour les exercices d'anglais, elle fait la correction en anglais puis explique en français.
@@ -1564,8 +1564,18 @@
       </tr>
       <tr>
         <td><strong style="color:#9B59B6">Claude (Anthropic)</strong></td>
-        <td>Moteur de l'Assistant IA — 3 modèles selon le tier : Haiku (Essentiel), Sonnet (Recommandé), Opus (Premium)</td>
+        <td>Moteur IA complémentaire — 3 modèles selon le tier : Haiku (Essentiel), Sonnet (Recommandé), Opus (Premium)</td>
         <td>API à la consommation</td>
+      </tr>
+      <tr>
+        <td><strong style="color:#00AD9F">DeepSeek</strong></td>
+        <td>Moteur IA par défaut — économique, rapide, utilisé pour les quiz et la génération de contenu</td>
+        <td>API à la consommation</td>
+      </tr>
+      <tr>
+        <td><strong style="color:#FF6B6B">Groq</strong></td>
+        <td>Moteur IA ultra-rapide — LLaMA 3.3 70B, idéal pour les réponses instantanées</td>
+        <td>API gratuite / payante</td>
       </tr>
       <tr>
         <td><strong style="color:#C8960C">HTML / JS / TailwindCSS</strong></td>
@@ -1591,28 +1601,34 @@
     <li><strong>CDN mondial</strong> : les pages se chargent rapidement depuis n'importe quel pays grâce au réseau de distribution Netlify</li>
   </ul>
 
-  <h2 class="section">16.4 Claude (Anthropic) — Intelligence Artificielle</h2>
-  <p>L'Assistant IA AGTM est propulsé par les modèles de langage Claude d'Anthropic, les mêmes que ceux utilisés sur <em>claude.ai</em> :</p>
+  <h2 class="section">16.4 Moteurs IA — DeepSeek / Claude / Groq</h2>
+  <p>L'Assistant IA AGTM propose <strong>4 moteurs d'IA</strong> sélectionnables manuellement par l'utilisateur via le sélecteur de fournisseur dans l'interface :</p>
   <table>
-    <thead><tr><th>Tier utilisateur</th><th>Modèle Claude</th><th>Caractéristiques</th></tr></thead>
+    <thead><tr><th>Moteur</th><th>Utilisation</th><th>Modèles</th></tr></thead>
     <tbody>
       <tr>
-        <td><strong style="color:#4A90D9">🔵 Essentiel</strong></td>
-        <td>Claude Haiku</td>
-        <td>Réponses rapides, questions courantes, FAQ, aide grammaticale</td>
+        <td><strong style="color:#00AD9F">DeepSeek</strong></td>
+        <td>Moteur par défaut — économique et rapide, idéal pour la génération de quiz, paroles, cours</td>
+        <td>deepseek-chat, deepseek-reasoner, deepseek-coder</td>
       </tr>
       <tr>
-        <td><strong style="color:#C8960C">🟡 Recommandé</strong></td>
-        <td>Claude Sonnet</td>
-        <td>Réponses plus détaillées, exercices personnalisés, préparation certifications</td>
+        <td><strong style="color:#9B59B6">Claude (Anthropic)</strong></td>
+        <td>Moteur complémentaire — 3 niveaux selon le tier</td>
+        <td>Haiku (Essentiel), Sonnet (Recommandé), Opus (Premium)</td>
       </tr>
       <tr>
-        <td><strong style="color:#9B59B6">🟣 Premium</strong></td>
-        <td>Claude Opus</td>
-        <td>Analyse avancée, réponses approfondies, simulations d'entretien, support prioritaire</td>
+        <td><strong style="color:#FF6B6B">Groq</strong></td>
+        <td>Moteur ultra-rapide — réponses instantanées</td>
+        <td>LLaMA 3.3 70B</td>
+      </tr>
+      <tr>
+        <td><strong style="color:#4A90D9">Turbo</strong></td>
+        <td>Mode combiné — Claude analyse, Groq synthétise</td>
+        <td>Claude + Groq</td>
       </tr>
     </tbody>
   </table>
+  <p>Le changement de fournisseur se fait en un clic. Le choix est conservé dans les préférences locales du navigateur.</p>
   <p>L'IA est enrichie d'une <strong>base de connaissances interne</strong> (programme AGTM, grammaire, FAQ) et peut effectuer des <strong>recherches web en temps réel</strong> (via Wikipedia et Brave Search) pour répondre à des questions d'actualité.</p>
   <div class="tip">
     <strong>Style de réponse :</strong> L'IA est configurée pour répondre de façon naturelle et conversationnelle, sans mise en forme markdown (pas d'astérisques, pas de tirets de liste). Les réponses sont fluides comme dans une vraie discussion.
@@ -1858,6 +1874,32 @@
     <li>Statuts : <em>En attente</em> → <em>Validé</em> → <em>Payé</em></li>
   </ul>
   <div class="tip">💡 L'admin peut valider ou marquer comme payé les honoraires depuis son espace Administration → Honoraires.</div>
+
+  <h2 class="section">17.8 Génération de quiz par IA & Ajout de contenu</h2>
+  <p>L'English Corner intègre un <strong>moteur IA multi-fournisseur</strong> (DeepSeek par défaut, Claude, Groq) pour générer automatiquement des quiz et du contenu pédagogique.</p>
+
+  <h3 class="sub">Sélecteur de fournisseur IA</h3>
+  <p>Dans la topbar de l'English Corner, un menu déroulant permet de choisir entre DeepSeek (défaut), Claude et Groq. Le choix est conservé localement.</p>
+
+  <h3 class="sub">Quiz automatique</h3>
+  <ul>
+    <li><strong>Live Class</strong> — bouton <strong>🧠 Quiz</strong> → 5 questions QCM générées par IA sur la vidéo en cours</li>
+    <li><strong>Reading (Lecture)</strong> — bouton <strong>🧠 Quiz</strong> → 5 questions de compréhension écrite</li>
+    <li><strong>Podcasts</strong> — bouton <strong>🧠 Quiz</strong> → 5 questions de compréhension orale</li>
+    <li><strong>Musique</strong> — bouton <strong>🎤 Paroles + Questions</strong> → paroles + 3-5 questions QCM</li>
+  </ul>
+  <p>Si l'API IA est indisponible (hors ligne), un quiz de fallback statique est utilisé.</p>
+
+  <h3 class="sub">Ajout manuel de contenu (mode admin)</h3>
+  <p>Les boutons d'ajout apparaissent automatiquement sur <strong>localhost</strong> ou après <strong>double-clic sur le titre "English Corner"</strong> dans la topbar.</p>
+  <ul>
+    <li><strong>Vidéos</strong> — importer une playlist YouTube complète</li>
+    <li><strong>Musique</strong> — ajouter une chanson par ID YouTube ou playlist</li>
+    <li><strong>Listening (Écoute)</strong> — importer une playlist d'écoute</li>
+    <li><strong>Reading (Lecture)</strong> — ajouter une vidéo avec titre + ID YouTube + niveau</li>
+    <li><strong>Podcasts</strong> — ajouter un podcast avec titre + URL + chaîne</li>
+  </ul>
+  <p>Les données ajoutées sont stockées dans <strong>localStorage</strong> et fusionnées avec les contenus API et fallback.</p>
 </div>
 
 <!-- ════════════════════════════════════════════════════════════

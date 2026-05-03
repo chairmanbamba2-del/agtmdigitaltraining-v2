@@ -1,12 +1,13 @@
 // ============================================================
-//  AGTM Digital Academy — Proxy DeepSeek API
+//  AGTM Digital Academy — Proxy DeepSeek API (DÉPRÉCIÉ)
 //  Netlify Function: deepseek-proxy.js
-//  Proxy sécurisé pour l'API DeepSeek (compatible OpenAI)
+//  ⚠ Ce fichier est déprécié au profit du module centralisé
+//    netlify/functions/lib/llm-providers.js (callLLM)
+//  Maintenu pour backward compatibility uniquement
 //  © 2026 AGTM Academy — Issa Bamba
 // ============================================================
 
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'
-const DEEPSEEK_KEY     = process.env.DEEPSEEK_API_KEY
+const { callLLM } = require('./lib/llm-providers')
 
 exports.handler = async function(event, context) {
   const headers = {
@@ -16,31 +17,17 @@ exports.handler = async function(event, context) {
     'Content-Type': 'application/json'
   }
 
-  // Gérer les pré‑requêtes CORS
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' }
   }
 
-  // Vérifier la méthode
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Méthode non autorisée' }) }
   }
 
-  // Vérifier la clé API
-  if (!DEEPSEEK_KEY) {
-    console.error('DeepSeek API key manquante dans les variables d\'environnement')
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Configuration serveur incomplète' })
-    }
-  }
-
   try {
-    // Parser le corps de la requête
     const body = JSON.parse(event.body || '{}')
-    
-    // Valider les champs requis
+
     if (!body.messages || !Array.isArray(body.messages)) {
       return {
         statusCode: 400,
@@ -49,49 +36,34 @@ exports.handler = async function(event, context) {
       }
     }
 
-    // Préparer la requête pour DeepSeek (format OpenAI compatible)
-    const deepseekBody = {
+    const result = await callLLM({
+      provider: 'deepseek',
       model: body.model || 'deepseek-chat',
       messages: body.messages,
       max_tokens: body.max_tokens || 2000,
-      temperature: body.temperature || 0.7,
-      stream: false
-    }
-
-    // Appeler l'API DeepSeek
-    const response = await fetch(DEEPSEEK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_KEY}`
-      },
-      body: JSON.stringify(deepseekBody)
+      temperature: body.temperature !== undefined ? body.temperature : 0.7
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('DeepSeek API error:', response.status, errorText)
+    if (!result.success) {
       return {
-        statusCode: response.status,
+        statusCode: 502,
         headers,
-        body: JSON.stringify({ 
-          error: `Erreur API DeepSeek (${response.status})`,
-          details: errorText.substring(0, 500)
+        body: JSON.stringify({
+          error: 'Erreur API DeepSeek',
+          details: result.errors
         })
       }
     }
 
-    const data = await response.json()
-    
-    // Retourner la réponse au format standardisé
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        reply: data.choices?.[0]?.message?.content || '',
-        model: data.model,
-        usage: data.usage,
-        id: data.id
+        reply: result.text,
+        model: result.model_used,
+        usage: result.usage,
+        provider: 'deepseek',
+        deprecated: true
       })
     }
 
@@ -100,9 +72,9 @@ exports.handler = async function(event, context) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: 'Erreur interne du proxy DeepSeek',
-        message: error.message 
+        message: error.message
       })
     }
   }
