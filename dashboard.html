@@ -29174,32 +29174,165 @@ Abidjan, Côte d'Ivoire 🇨🇮
       const _mktToastErr = () => toast('❌ ' + _mktL('Erreur', 'Error'))
 
       window._mktCMSAddActu = function() {
-        const titre = prompt(_mktL("Titre de l'actualité", 'News title'))
-        if (!titre) return
-        _mktApi('marketing_actualites', 'POST', { titre_fr: titre, status: 'draft', type: 'actualite' })
-          .then(r => { if (r.ok) { _mktToastOk('Actualité créée', 'News created'); renderMarketingCMS() } else _mktToastErr() })
+        const existing = document.getElementById('_mktActuModal')
+        if (existing) existing.remove()
+
+        const overlay = document.createElement('div')
+        overlay.id = '_mktActuModal'
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px'
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove() }
+
+        overlay.innerHTML = '<div style="background:#0D1B2A;border:1px solid #1E3050;border-radius:12px;max-width:500px;width:100%;padding:24px">' +
+          '<div style="font-size:1rem;font-weight:700;color:#E8B84B;margin-bottom:16px">📰 ' + _mktL('Nouvelle actualité', 'New article') + '</div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre (FR)', 'Title (FR)') + '</label>' +
+          '<input id="_mktActuTitreFr" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem" placeholder="Titre de l\'actualité"></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre (EN)', 'Title (EN)') + '</label>' +
+          '<input id="_mktActuTitreEn" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem" placeholder="News title"></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Résumé', 'Summary') + '</label>' +
+          '<textarea id="_mktActuResume" rows="2" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem;resize:vertical" placeholder="Résumé court..."></textarea></div>' +
+          '<div style="margin-bottom:16px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('URL image (optionnel)', 'Image URL (optional)') + '</label>' +
+          '<input id="_mktActuImage" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem" placeholder="https://..."></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button onclick="document.getElementById(\'_mktActuModal\').remove()" style="padding:8px 16px;border-radius:6px;border:1px solid #1E3050;background:transparent;color:#90A4AE;font-size:.78rem;cursor:pointer">' + _mktL('Annuler', 'Cancel') + '</button>' +
+          '<button onclick="_mktCMSSubmitActu()" style="padding:8px 16px;border-radius:6px;background:rgba(74,144,217,.2);border:1px solid rgba(74,144,217,.4);color:#4A90D9;font-size:.78rem;font-weight:700;cursor:pointer">💾 ' + _mktL('Créer', 'Create') + '</button>' +
+          '</div></div>'
+        document.body.appendChild(overlay)
+        document.getElementById('_mktActuTitreFr').focus()
+      }
+
+      window._mktCMSSubmitActu = function() {
+        const titreFr = document.getElementById('_mktActuTitreFr').value.trim()
+        const titreEn = document.getElementById('_mktActuTitreEn').value.trim()
+        const resume = document.getElementById('_mktActuResume').value.trim()
+        const image = document.getElementById('_mktActuImage').value.trim()
+        if (!titreFr) { toast('⚠️ ' + _mktL('Le titre est requis', 'Title is required')); return }
+
+        const body = {
+          titre_fr: titreFr,
+          titre_en: titreEn || titreFr,
+          resume_fr: resume,
+          resume_en: resume,
+          status: 'draft',
+          type: 'actualite'
+        }
+        if (image) body.image_url = image
+
+        const btn = event.target
+        btn.disabled = true
+        btn.textContent = '⏳ Création...'
+
+        _mktApi('marketing_actualites', 'POST', body)
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Actualité créée', 'News created'))
+              document.getElementById('_mktActuModal').remove()
+              _mktCMSRefreshPreview()
+              renderMarketingCMS()
+            } else {
+              toast('❌ ' + _mktL('Erreur lors de la création', 'Creation error'))
+              btn.disabled = false
+              btn.textContent = '💾 ' + _mktL('Créer', 'Create')
+            }
+          })
+          .catch(e => {
+            toast('❌ ' + e.message)
+            btn.disabled = false
+            btn.textContent = '💾 ' + _mktL('Créer', 'Create')
+          })
+      }
+
+      window._mktCMSEditActu = function(id) {
+        const actu = (window._mktActus || []).find(a => a.id === id)
+        if (!actu) { toast('⚠️ Actualité introuvable'); return }
+
+        const existing = document.getElementById('_mktActuModal')
+        if (existing) existing.remove()
+
+        const overlay = document.createElement('div')
+        overlay.id = '_mktActuModal'
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px'
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove() }
+
+        overlay.innerHTML = '<div style="background:#0D1B2A;border:1px solid #1E3050;border-radius:12px;max-width:500px;width:100%;padding:24px">' +
+          '<div style="font-size:1rem;font-weight:700;color:#E8B84B;margin-bottom:16px">✏️ ' + _mktL('Modifier l\'actualité', 'Edit article') + '</div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre (FR)', 'Title (FR)') + '</label>' +
+          '<input id="_mktActuTitreFr" type="text" value="' + (actu.titre_fr || '').replace(/"/g, '&quot;') + '" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem"></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre (EN)', 'Title (EN)') + '</label>' +
+          '<input id="_mktActuTitreEn" type="text" value="' + (actu.titre_en || '').replace(/"/g, '&quot;') + '" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem"></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Résumé', 'Summary') + '</label>' +
+          '<textarea id="_mktActuResume" rows="2" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem;resize:vertical">' + (actu.resume_fr || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></div>' +
+          '<div style="margin-bottom:16px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('URL image', 'Image URL') + '</label>' +
+          '<input id="_mktActuImage" type="text" value="' + (actu.image_url || '').replace(/"/g, '&quot;') + '" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem"></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button onclick="document.getElementById(\'_mktActuModal\').remove()" style="padding:8px 16px;border-radius:6px;border:1px solid #1E3050;background:transparent;color:#90A4AE;font-size:.78rem;cursor:pointer">' + _mktL('Annuler', 'Cancel') + '</button>' +
+          '<button onclick="_mktCMSSubmitEditActu(\'' + id + '\')" style="padding:8px 16px;border-radius:6px;background:rgba(74,144,217,.2);border:1px solid rgba(74,144,217,.4);color:#4A90D9;font-size:.78rem;font-weight:700;cursor:pointer">💾 ' + _mktL('Sauvegarder', 'Save') + '</button>' +
+          '</div></div>'
+        document.body.appendChild(overlay)
+      }
+
+      window._mktCMSSubmitEditActu = function(id) {
+        const titreFr = document.getElementById('_mktActuTitreFr').value.trim()
+        const titreEn = document.getElementById('_mktActuTitreEn').value.trim()
+        const resume = document.getElementById('_mktActuResume').value.trim()
+        const image = document.getElementById('_mktActuImage').value.trim()
+        if (!titreFr) { toast('⚠️ ' + _mktL('Le titre est requis', 'Title is required')); return }
+
+        const body = { titre_fr: titreFr, titre_en: titreEn || titreFr }
+        if (resume) { body.resume_fr = resume; body.resume_en = resume }
+        if (image) body.image_url = image
+
+        const btn = event.target
+        btn.disabled = true
+        btn.textContent = '⏳ Sauvegarde...'
+
+        _mktApiId('marketing_actualites', id, 'PATCH', body)
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Actualité mise à jour', 'News updated'))
+              document.getElementById('_mktActuModal').remove()
+              _mktCMSRefreshPreview()
+              renderMarketingCMS()
+            } else {
+              toast('❌ ' + _mktL('Erreur', 'Error'))
+              btn.disabled = false
+              btn.textContent = '💾 ' + _mktL('Sauvegarder', 'Save')
+            }
+          })
+          .catch(e => {
+            toast('❌ ' + e.message)
+            btn.disabled = false
+            btn.textContent = '💾 ' + _mktL('Sauvegarder', 'Save')
+          })
+      }
+
+      window._mktCMSDelActu = function(id) {
+        if (!confirm(_mktL('Supprimer cette actualité ?', 'Delete this article?'))) return
+        _mktApiId('marketing_actualites', id, 'DELETE')
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Actualité supprimée', 'News deleted'))
+              _mktCMSRefreshPreview()
+              renderMarketingCMS()
+            } else { toast('❌ ' + _mktL('Erreur', 'Error')) }
+          })
           .catch(e => toast('❌ ' + e.message))
       }
-      window._mktCMSEditActu = function(id) {
-        const newTitre = prompt(_mktL('Nouveau titre', 'New title'))
-        if (!newTitre) return
-        _mktApiId('marketing_actualites', id, 'PATCH', { titre_fr: newTitre })
-          .then(r => { if (r.ok) { _mktToastOk('Actualité mise à jour', 'News updated'); renderMarketingCMS() } else _mktToastErr() })
-      }
-      window._mktCMSDelActu = function(id) {
-        _mktApiId('marketing_actualites', id, 'DELETE')
-          .then(r => { if (r.ok) { _mktToastOk('Actualité supprimée', 'News deleted'); renderMarketingCMS() } else _mktToastErr() })
-      }
+
       window._mktCMSPublishActu = function(id, currentStatus) {
         const newStatus = currentStatus === 'published' ? 'draft' : 'published'
         _mktApiId('marketing_actualites', id, 'PATCH', { status: newStatus })
-          .then(r => { if (r.ok) { _mktToastOk('Actualité ' + newStatus, 'News ' + newStatus); _mktCMSRefreshPreview(); renderMarketingCMS() } else _mktToastErr() })
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Actualité ' + (newStatus === 'published' ? 'publiée' : 'dépubliée'), 'News ' + newStatus))
+              _mktCMSRefreshPreview()
+              renderMarketingCMS()
+            } else { toast('❌ ' + _mktL('Erreur', 'Error')) }
+          })
+          .catch(e => toast('❌ ' + e.message))
       }
+
       window._mktCMSSaveActu = function(id) {
-        const titre = prompt(_mktL('Titre (laisser vide pour ne pas modifier)', 'Title (leave empty to skip)'))
-        if (!titre) { toast('⚠️ ' + _mktL('Aucune modification', 'No changes')); return }
-        _mktApiId('marketing_actualites', id, 'PATCH', { titre_fr: titre })
-          .then(r => { if (r.ok) { _mktToastOk('Actualité sauvegardée', 'News saved'); renderMarketingCMS() } else _mktToastErr() })
+        window._mktCMSEditActu(id)
       }
       window._mktCMSPublishAll = function() {
         if (!confirm(_mktL('Publier TOUS les brouillons sur la page vitrine ?', 'Publish ALL drafts to the landing page?'))) return
@@ -29228,54 +29361,307 @@ Abidjan, Côte d'Ivoire 🇨🇮
         const frame = document.getElementById('mktPreviewFrame')
         if (frame) frame.src = '/?marketing=1&_t=' + Date.now()
       }
+
+      // ── Modal formulaire pour blocs ──
       window._mktCMSAddBloc = function() {
-        const type = prompt(_mktL('Type de bloc (hero, features, pricing, cta, text, stats)', 'Block type'))
-        if (!type) return
-        const titre = prompt(_mktL('Titre du bloc', 'Block title'))
-        if (!titre) return
-        _mktApi('marketing_blocs', 'POST', { type, content: { fr: { titre } }, status: 'draft' })
-          .then(r => { if (r.ok) { _mktToastOk('Bloc créé', 'Block created'); renderMarketingCMS() } else { r.text().then(t => toast('❌ ' + t)) } })
-          .catch(e => toast('❌ ' + e.message))
+        const existing = document.getElementById('_mktBlocModal')
+        if (existing) existing.remove()
+
+        const overlay = document.createElement('div')
+        overlay.id = '_mktBlocModal'
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px'
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove() }
+
+        overlay.innerHTML = '<div style="background:#0D1B2A;border:1px solid #1E3050;border-radius:12px;max-width:500px;width:100%;padding:24px">' +
+          '<div style="font-size:1rem;font-weight:700;color:#E8B84B;margin-bottom:16px">➕ ' + _mktL('Nouveau bloc de contenu', 'New content block') + '</div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Type de bloc', 'Block type') + '</label>' +
+          '<select id="_mktBlocType" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem">' +
+          '<option value="hero">🏠 Hero (bannière principale)</option>' +
+          '<option value="features">⭐ Features (fonctionnalités)</option>' +
+          '<option value="pricing">💰 Pricing (tarifs)</option>' +
+          '<option value="cta">📢 CTA (appel à l\'action)</option>' +
+          '<option value="text">📝 Text (texte libre)</option>' +
+          '<option value="stats">📊 Stats (statistiques)</option>' +
+          '<option value="testimonials">💬 Testimonials (témoignages)</option>' +
+          '<option value="gallery">📸 Gallery (galerie)</option>' +
+          '</select></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre (FR)', 'Title (FR)') + '</label>' +
+          '<input id="_mktBlocTitreFr" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem" placeholder="Titre en français"></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre (EN)', 'Title (EN)') + '</label>' +
+          '<input id="_mktBlocTitreEn" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem" placeholder="Title in English (optional)"></div>' +
+          '<div style="margin-bottom:16px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Description / Contenu', 'Description / Content') + '</label>' +
+          '<textarea id="_mktBlocContent" rows="3" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem;resize:vertical" placeholder="Contenu du bloc..."></textarea></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button onclick="document.getElementById(\'_mktBlocModal\').remove()" style="padding:8px 16px;border-radius:6px;border:1px solid #1E3050;background:transparent;color:#90A4AE;font-size:.78rem;cursor:pointer">' + _mktL('Annuler', 'Cancel') + '</button>' +
+          '<button onclick="_mktCMSSubmitBloc()" style="padding:8px 16px;border-radius:6px;background:rgba(232,148,26,.2);border:1px solid rgba(232,148,26,.4);color:#E8B84B;font-size:.78rem;font-weight:700;cursor:pointer">💾 ' + _mktL('Créer le bloc', 'Create block') + '</button>' +
+          '</div></div>'
+        document.body.appendChild(overlay)
+        document.getElementById('_mktBlocType').focus()
       }
+
+      window._mktCMSSubmitBloc = function() {
+        const type = document.getElementById('_mktBlocType').value
+        const titreFr = document.getElementById('_mktBlocTitreFr').value.trim()
+        const titreEn = document.getElementById('_mktBlocTitreEn').value.trim()
+        const content = document.getElementById('_mktBlocContent').value.trim()
+        if (!titreFr) { toast('⚠️ ' + _mktL('Le titre est requis', 'Title is required')); return }
+
+        const body = {
+          type: type,
+          content: {
+            fr: { titre: titreFr, desc: content || titreFr },
+            en: { titre: titreEn || titreFr, desc: content || titreEn || titreFr }
+          },
+          status: 'draft',
+          sort_order: (window._mktBlocs || []).length
+        }
+
+        const btn = event.target
+        btn.disabled = true
+        btn.textContent = '⏳ Création...'
+
+        _mktApi('marketing_blocs', 'POST', body)
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Bloc créé avec succès', 'Block created successfully'))
+              document.getElementById('_mktBlocModal').remove()
+              _mktCMSRefreshPreview()
+              renderMarketingCMS()
+            } else {
+              r.text().then(t => toast('❌ ' + (t || _mktL('Erreur lors de la création', 'Creation error'))))
+              btn.disabled = false
+              btn.textContent = '💾 ' + _mktL('Créer le bloc', 'Create block')
+            }
+          })
+          .catch(e => {
+            toast('❌ ' + e.message)
+            btn.disabled = false
+            btn.textContent = '💾 ' + _mktL('Créer le bloc', 'Create block')
+          })
+      }
+
       window._mktCMSEditBloc = function(id) {
-        const titre = prompt(_mktL('Nouveau titre du bloc', 'New block title'))
-        if (!titre) return
-        _mktApiId('marketing_blocs', id, 'PATCH', { content: { fr: { titre } } })
-          .then(r => { if (r.ok) { _mktToastOk('Bloc mis à jour', 'Block updated'); renderMarketingCMS() } else _mktToastErr() })
+        const bloc = (window._mktBlocs || []).find(b => b.id === id)
+        if (!bloc) { toast('⚠️ Bloc introuvable'); return }
+
+        const existing = document.getElementById('_mktBlocModal')
+        if (existing) existing.remove()
+
+        const titreFr = bloc.content?.fr?.titre || ''
+        const titreEn = bloc.content?.en?.titre || ''
+        const desc = bloc.content?.fr?.desc || ''
+
+        const overlay = document.createElement('div')
+        overlay.id = '_mktBlocModal'
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px'
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove() }
+
+        overlay.innerHTML = '<div style="background:#0D1B2A;border:1px solid #1E3050;border-radius:12px;max-width:500px;width:100%;padding:24px">' +
+          '<div style="font-size:1rem;font-weight:700;color:#E8B84B;margin-bottom:16px">✏️ ' + _mktL('Modifier le bloc', 'Edit block') + '</div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Type', 'Type') + '</label>' +
+          '<div style="padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem">' + (bloc.type || 'text') + '</div></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre (FR)', 'Title (FR)') + '</label>' +
+          '<input id="_mktBlocTitreFr" type="text" value="' + titreFr.replace(/"/g, '&quot;') + '" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem"></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre (EN)', 'Title (EN)') + '</label>' +
+          '<input id="_mktBlocTitreEn" type="text" value="' + titreEn.replace(/"/g, '&quot;') + '" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem"></div>' +
+          '<div style="margin-bottom:16px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Description / Contenu', 'Description / Content') + '</label>' +
+          '<textarea id="_mktBlocContent" rows="3" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem;resize:vertical">' + desc.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button onclick="document.getElementById(\'_mktBlocModal\').remove()" style="padding:8px 16px;border-radius:6px;border:1px solid #1E3050;background:transparent;color:#90A4AE;font-size:.78rem;cursor:pointer">' + _mktL('Annuler', 'Cancel') + '</button>' +
+          '<button onclick="_mktCMSSubmitEditBloc(\'' + id + '\')" style="padding:8px 16px;border-radius:6px;background:rgba(232,148,26,.2);border:1px solid rgba(232,148,26,.4);color:#E8B84B;font-size:.78rem;font-weight:700;cursor:pointer">💾 ' + _mktL('Sauvegarder', 'Save') + '</button>' +
+          '</div></div>'
+        document.body.appendChild(overlay)
+        document.getElementById('_mktBlocTitreFr').focus()
       }
+
+      window._mktCMSSubmitEditBloc = function(id) {
+        const titreFr = document.getElementById('_mktBlocTitreFr').value.trim()
+        const titreEn = document.getElementById('_mktBlocTitreEn').value.trim()
+        const content = document.getElementById('_mktBlocContent').value.trim()
+        if (!titreFr) { toast('⚠️ ' + _mktL('Le titre est requis', 'Title is required')); return }
+
+        const body = {
+          content: {
+            fr: { titre: titreFr, desc: content || titreFr },
+            en: { titre: titreEn || titreFr, desc: content || titreEn || titreFr }
+          }
+        }
+
+        const btn = event.target
+        btn.disabled = true
+        btn.textContent = '⏳ Sauvegarde...'
+
+        _mktApiId('marketing_blocs', id, 'PATCH', body)
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Bloc mis à jour', 'Block updated'))
+              document.getElementById('_mktBlocModal').remove()
+              _mktCMSRefreshPreview()
+              renderMarketingCMS()
+            } else {
+              toast('❌ ' + _mktL('Erreur lors de la mise à jour', 'Update error'))
+              btn.disabled = false
+              btn.textContent = '💾 ' + _mktL('Sauvegarder', 'Save')
+            }
+          })
+          .catch(e => {
+            toast('❌ ' + e.message)
+            btn.disabled = false
+            btn.textContent = '💾 ' + _mktL('Sauvegarder', 'Save')
+          })
+      }
+
       window._mktCMSPublishBloc = function(id) {
         const el = document.querySelector('[data-bid="' + id + '"]')
         const currentStatus = el ? el.dataset.status : 'draft'
         const newStatus = currentStatus === 'published' ? 'draft' : 'published'
         _mktApiId('marketing_blocs', id, 'PATCH', { status: newStatus })
-          .then(r => { if (r.ok) { _mktToastOk('Bloc ' + newStatus, 'Block ' + newStatus); _mktCMSRefreshPreview(); renderMarketingCMS() } else _mktToastErr() })
-      }
-      window._mktCMSSaveBloc = function(id) {
-        const titre = prompt(_mktL('Titre (laisser vide pour ne pas modifier)', 'Title (leave empty to skip)'))
-        const body = {}
-        if (titre) body.content = { fr: { titre } }
-        if (!Object.keys(body).length) { toast('⚠️ ' + _mktL('Aucune modification', 'No changes')); return }
-        _mktApiId('marketing_blocs', id, 'PATCH', body)
-          .then(r => { if (r.ok) { _mktToastOk('Bloc sauvegardé', 'Block saved'); renderMarketingCMS() } else _mktToastErr() })
-      }
-      window._mktCMSAddGalerie = function(nom) {
-        _mktApi('marketing_galeries', 'POST', { titre_fr: nom, status: 'draft' })
-          .then(r => { if (r.ok) { _mktToastOk('Album créé', 'Album created'); renderMarketingCMS() } else _mktToastErr() })
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Bloc ' + (newStatus === 'published' ? 'publié' : 'dépublié'), 'Block ' + newStatus))
+              _mktCMSRefreshPreview()
+              renderMarketingCMS()
+            } else {
+              toast('❌ ' + _mktL('Erreur', 'Error'))
+            }
+          })
           .catch(e => toast('❌ ' + e.message))
       }
-      window._mktCMSEditGalerie = function(id) {
-        const url = prompt(_mktL("URL de l'image de couverture", 'Cover image URL'))
-        if (!url) return
-        _mktApiId('marketing_galeries', id, 'PATCH', { couverture_url: url, status: 'published' })
-          .then(r => { if (r.ok) { _mktToastOk('Album publié', 'Album published'); renderMarketingCMS() } else toast('❌ ' + r.status) })
+
+      window._mktCMSSaveBloc = function(id) {
+        // Utiliser le modal d'édition pour sauvegarder
+        window._mktCMSEditBloc(id)
       }
+
+      window._mktCMSAddGalerie = function(nom) {
+        const existing = document.getElementById('_mktGalerieModal')
+        if (existing) existing.remove()
+
+        const overlay = document.createElement('div')
+        overlay.id = '_mktGalerieModal'
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px'
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove() }
+
+        overlay.innerHTML = '<div style="background:#0D1B2A;border:1px solid #1E3050;border-radius:12px;max-width:450px;width:100%;padding:24px">' +
+          '<div style="font-size:1rem;font-weight:700;color:#E8B84B;margin-bottom:16px">📸 ' + _mktL('Nouvel album photo', 'New photo album') + '</div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Nom de l\'album', 'Album name') + '</label>' +
+          '<input id="_mktGalerieNom" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem" placeholder="Ex: Nos événements 2026"></div>' +
+          '<div style="margin-bottom:16px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('URL image couverture (optionnel)', 'Cover image URL (optional)') + '</label>' +
+          '<input id="_mktGalerieCover" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem" placeholder="https://..."></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button onclick="document.getElementById(\'_mktGalerieModal\').remove()" style="padding:8px 16px;border-radius:6px;border:1px solid #1E3050;background:transparent;color:#90A4AE;font-size:.78rem;cursor:pointer">' + _mktL('Annuler', 'Cancel') + '</button>' +
+          '<button onclick="_mktCMSSubmitGalerie()" style="padding:8px 16px;border-radius:6px;background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);color:#22C55E;font-size:.78rem;font-weight:700;cursor:pointer">💾 ' + _mktL('Créer', 'Create') + '</button>' +
+          '</div></div>'
+        document.body.appendChild(overlay)
+        document.getElementById('_mktGalerieNom').focus()
+      }
+
+      window._mktCMSSubmitGalerie = function() {
+        const nom = document.getElementById('_mktGalerieNom').value.trim()
+        const cover = document.getElementById('_mktGalerieCover').value.trim()
+        if (!nom) { toast('⚠️ ' + _mktL('Le nom est requis', 'Name is required')); return }
+
+        const body = { titre_fr: nom, titre_en: nom, status: 'draft' }
+        if (cover) body.couverture_url = cover
+
+        _mktApi('marketing_galeries', 'POST', body)
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Album créé', 'Album created'))
+              document.getElementById('_mktGalerieModal').remove()
+              renderMarketingCMS()
+            } else { toast('❌ ' + _mktL('Erreur', 'Error')) }
+          })
+          .catch(e => toast('❌ ' + e.message))
+      }
+
+      window._mktCMSEditGalerie = function(id) {
+        const galerie = (window._mktGaleries || []).find(g => g.id === id)
+        if (!galerie) { toast('⚠️ Album introuvable'); return }
+
+        const existing = document.getElementById('_mktGalerieModal')
+        if (existing) existing.remove()
+
+        const overlay = document.createElement('div')
+        overlay.id = '_mktGalerieModal'
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px'
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove() }
+
+        overlay.innerHTML = '<div style="background:#0D1B2A;border:1px solid #1E3050;border-radius:12px;max-width:450px;width:100%;padding:24px">' +
+          '<div style="font-size:1rem;font-weight:700;color:#E8B84B;margin-bottom:16px">✏️ ' + _mktL('Modifier l\'album', 'Edit album') + '</div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Nom de l\'album', 'Album name') + '</label>' +
+          '<input id="_mktGalerieNom" type="text" value="' + (galerie.titre_fr || '').replace(/"/g, '&quot;') + '" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem"></div>' +
+          '<div style="margin-bottom:16px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('URL image couverture', 'Cover image URL') + '</label>' +
+          '<input id="_mktGalerieCover" type="text" value="' + (galerie.couverture_url || '').replace(/"/g, '&quot;') + '" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem"></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button onclick="document.getElementById(\'_mktGalerieModal\').remove()" style="padding:8px 16px;border-radius:6px;border:1px solid #1E3050;background:transparent;color:#90A4AE;font-size:.78rem;cursor:pointer">' + _mktL('Annuler', 'Cancel') + '</button>' +
+          '<button onclick="_mktCMSSubmitEditGalerie(\'' + id + '\')" style="padding:8px 16px;border-radius:6px;background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);color:#22C55E;font-size:.78rem;font-weight:700;cursor:pointer">💾 ' + _mktL('Sauvegarder', 'Save') + '</button>' +
+          '</div></div>'
+        document.body.appendChild(overlay)
+      }
+
+      window._mktCMSSubmitEditGalerie = function(id) {
+        const nom = document.getElementById('_mktGalerieNom').value.trim()
+        const cover = document.getElementById('_mktGalerieCover').value.trim()
+        if (!nom) { toast('⚠️ ' + _mktL('Le nom est requis', 'Name is required')); return }
+
+        const body = { titre_fr: nom, titre_en: nom }
+        if (cover) body.couverture_url = cover
+
+        _mktApiId('marketing_galeries', id, 'PATCH', body)
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Album mis à jour', 'Album updated'))
+              document.getElementById('_mktGalerieModal').remove()
+              renderMarketingCMS()
+            } else { toast('❌ ' + _mktL('Erreur', 'Error')) }
+          })
+          .catch(e => toast('❌ ' + e.message))
+      }
+
       window._mktCMSAddLien = function() {
-        const t = prompt(_mktL('Titre du lien', 'Link title'))
-        if (!t) return
-        const u = prompt(_mktL('URL du lien', 'Link URL'))
-        if (!u) return
-        _mktApi('marketing_liens', 'POST', { type: 'lien', titre_fr: t, url: u, visible: true })
-          .then(r => { if (r.ok) { _mktToastOk('Lien créé', 'Link created'); renderMarketingCMS() } else _mktToastErr() })
+        const existing = document.getElementById('_mktLienModal')
+        if (existing) existing.remove()
+
+        const overlay = document.createElement('div')
+        overlay.id = '_mktLienModal'
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px'
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove() }
+
+        overlay.innerHTML = '<div style="background:#0D1B2A;border:1px solid #1E3050;border-radius:12px;max-width:450px;width:100%;padding:24px">' +
+          '<div style="font-size:1rem;font-weight:700;color:#E8B84B;margin-bottom:16px">🔗 ' + _mktL('Nouveau lien', 'New link') + '</div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Type', 'Type') + '</label>' +
+          '<select id="_mktLienType" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem">' +
+          '<option value="lien">🔗 Lien web</option>' +
+          '<option value="social">📱 Réseau social</option>' +
+          '<option value="temoignage">💬 Témoignage</option>' +
+          '</select></div>' +
+          '<div style="margin-bottom:12px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('Titre', 'Title') + '</label>' +
+          '<input id="_mktLienTitre" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#E8B84B;font-size:.82rem" placeholder="Ex: Facebook, YouTube..."></div>' +
+          '<div style="margin-bottom:16px"><label style="display:block;font-size:.75rem;color:#8A9AB5;margin-bottom:4px">' + _mktL('URL', 'URL') + '</label>' +
+          '<input id="_mktLienUrl" type="text" style="width:100%;padding:8px 12px;border-radius:6px;background:#132540;border:1px solid #1E3050;color:#C8D8E8;font-size:.82rem" placeholder="https://..."></div>' +
+          '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button onclick="document.getElementById(\'_mktLienModal\').remove()" style="padding:8px 16px;border-radius:6px;border:1px solid #1E3050;background:transparent;color:#90A4AE;font-size:.78rem;cursor:pointer">' + _mktL('Annuler', 'Cancel') + '</button>' +
+          '<button onclick="_mktCMSSubmitLien()" style="padding:8px 16px;border-radius:6px;background:rgba(74,144,217,.2);border:1px solid rgba(74,144,217,.4);color:#4A90D9;font-size:.78rem;font-weight:700;cursor:pointer">💾 ' + _mktL('Créer', 'Create') + '</button>' +
+          '</div></div>'
+        document.body.appendChild(overlay)
+        document.getElementById('_mktLienTitre').focus()
+      }
+
+      window._mktCMSSubmitLien = function() {
+        const type = document.getElementById('_mktLienType').value
+        const titre = document.getElementById('_mktLienTitre').value.trim()
+        const url = document.getElementById('_mktLienUrl').value.trim()
+        if (!titre || !url) { toast('⚠️ ' + _mktL('Titre et URL requis', 'Title and URL required')); return }
+
+        _mktApi('marketing_liens', 'POST', { type: type, titre_fr: titre, titre_en: titre, url: url, visible: true })
+          .then(r => {
+            if (r.ok) {
+              toast('✅ ' + _mktL('Lien créé', 'Link created'))
+              document.getElementById('_mktLienModal').remove()
+              renderMarketingCMS()
+            } else { toast('❌ ' + _mktL('Erreur', 'Error')) }
+          })
           .catch(e => toast('❌ ' + e.message))
       }
       window._mktCMSSaveConfig = function() {

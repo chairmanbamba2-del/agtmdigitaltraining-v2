@@ -64,14 +64,21 @@ exports.handler = async (event) => {
     if (isPublic && method === 'GET') {
       if (resource === 'render') {
         const lang = query.lang || 'fr'
+
+        // Chaque requête est isolée pour éviter qu'une erreur ne casse tout le rendu
+        const safeSb = async (...args) => {
+          try { return await sb(...args) }
+          catch(e) { console.warn('[Marketing API] safeSb error:', e.message); return { data: [] } }
+        }
+
         const [blocs, actus, galeries, gImgs, liens, cfg, mktConfig] = await Promise.all([
-          sb('marketing_blocs', 'GET', { status: 'eq.published', order: 'sort_order.asc' }),
-          sb('marketing_actualites', 'GET', { status: 'eq.published', order: 'date_publication.desc', limit: '6' }),
-          sb('marketing_galeries', 'GET', { status: 'eq.published', order: 'sort_order.asc' }),
-          query.with_images ? sb('marketing_galeries_images', 'GET', { visible: 'eq.true', order: 'sort_order.asc' }) : Promise.resolve({ data: [] }),
-          sb('marketing_liens', 'GET', { visible: 'eq.true', order: 'sort_order.asc' }),
-          sb('marketing_media', 'GET', { limit: '20', order: 'created_at.desc' }),
-          sb('marketing_config', 'GET', { select: 'cle,valeur' }),
+          safeSb('marketing_blocs', 'GET', { status: 'eq.published', order: 'sort_order.asc' }),
+          safeSb('marketing_actualites', 'GET', { status: 'eq.published', order: 'date_publication.desc', limit: '6' }),
+          safeSb('marketing_galeries', 'GET', { status: 'eq.published', order: 'sort_order.asc' }),
+          query.with_images ? safeSb('marketing_galeries_images', 'GET', { visible: 'eq.true', order: 'sort_order.asc' }) : Promise.resolve({ data: [] }),
+          safeSb('marketing_liens', 'GET', { visible: 'eq.true', order: 'sort_order.asc' }),
+          safeSb('marketing_media', 'GET', { limit: '20', order: 'created_at.desc' }),
+          safeSb('marketing_config', 'GET', { select: 'cle,valeur' }),
         ])
 
         // Grouper les images par galerie
