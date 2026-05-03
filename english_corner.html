@@ -1213,13 +1213,27 @@ function _safeParseJSON(input) {
   if (!input) return null
   if (typeof input === 'object') return input
   let s = String(input).trim()
-  s = s.replace(/```json?\n?/gi,'').replace(/```\n?$/g,'').trim()
-  if (s.startsWith('{') && s.endsWith('}')) { try { return JSON.parse(s) } catch(e) {} }
-  if (s.startsWith('[') && s.endsWith(']')) { try { return JSON.parse(s) } catch(e) {} }
-  const braceStart = s.indexOf('{'), braceEnd = s.lastIndexOf('}')
-  if (braceStart >= 0 && braceEnd > braceStart) { try { return JSON.parse(s.substring(braceStart, braceEnd + 1)) } catch(e) {} }
-  const arrStart = s.indexOf('['), arrEnd = s.lastIndexOf(']')
-  if (arrStart >= 0 && arrEnd > arrStart) { try { return JSON.parse(s.substring(arrStart, arrEnd + 1)) } catch(e) {} }
+  // Remove markdown code fences
+  s = s.replace(/```json?\s*\n?/gi,'').replace(/```\s*\n?$/g,'').trim()
+  // Try direct parse
+  if ((s.startsWith('{') && s.endsWith('}')) || (s.startsWith('[') && s.endsWith(']'))) {
+    try { return JSON.parse(s) } catch(e) {}
+  }
+  // Extract JSON object
+  {
+    const braceStart = s.indexOf('{'), braceEnd = s.lastIndexOf('}')
+    if (braceStart >= 0 && braceEnd > braceStart) { try { return JSON.parse(s.substring(braceStart, braceEnd + 1)) } catch(e) {} }
+  }
+  // Extract JSON array
+  {
+    const arrStart = s.indexOf('['), arrEnd = s.lastIndexOf(']')
+    if (arrStart >= 0 && arrEnd > arrStart) { try { return JSON.parse(s.substring(arrStart, arrEnd + 1)) } catch(e) {} }
+  }
+  // Try fixing common JSON issues: unescaped quotes, trailing commas
+  let fixed = s
+  fixed = fixed.replace(/,\s*([}\]])/g, '$1') // trailing commas
+  try { return JSON.parse(fixed) } catch(e) {}
+  console.warn('_safeParseJSON: all parse attempts failed. Input preview:', s.substring(0, 200))
   return null
 }
 
@@ -1235,17 +1249,25 @@ async function _aiCall(messages, opts) {
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({ provider, model, messages, max_tokens:opts?.max_tokens||1500, temperature:opts?.temperature||0.3 })
     })
+    if (!r.ok) {
+      const errBody = await r.json().catch(() => ({}))
+      console.error('AI HTTP error [' + r.status + ']:', errBody.error || r.statusText)
+      throw new Error('Erreur serveur IA: ' + r.status)
+    }
     const d = await r.json()
     if (d.error) {
-      console.error('AI error [' + r.status + ']:', d.error, d.details ? JSON.stringify(d.details).substring(0,200) : '')
-      return null
+      console.error('AI API error:', d.error, d.details ? JSON.stringify(d.details).substring(0,200) : '')
+      throw new Error(d.error)
     }
     if (typeof d.content === 'object' && d.content !== null) return d.content
     if (d.reply) return String(d.reply)
     if (typeof d.content === 'string') return d.content
     console.error('AI empty response | status:', r.status, '| body:', JSON.stringify(d).substring(0,200))
-  } catch(e) { console.error('AI fetch error:', e.message) }
-  return null
+    throw new Error('Reponse IA vide')
+  } catch(e) {
+    console.error('AI call failed:', e.message)
+    throw e
+  }
 }
 
 async function submitWriting() {
@@ -2282,18 +2304,22 @@ window._lvGenerateQuiz = async function() {
   block.style.display = 'block'
   block.innerHTML = '<div style="color:var(--muted);font-size:.75rem;text-align:center">⏳ Génération du quiz par IA...</div>'
   _lvBroadcast({ action: 'quiz_start', videoId: window._lv.videoId })
-  const content = await _aiCall([
-    {role:'system',content:'Génère 5 questions QCM en anglais sur cette vidéo YouTube. Réponse en JSON: {"questions":[{"q":"...","opts":["A) ...","B) ...","C) ...","D) ..."],"rep":"A","expl":"..."}]}'},
-    {role:'user',content:'ID vidéo YouTube: ' + window._lv.videoId + '. Crée 5 questions de compréhension pour des apprenants niveau B1.'}
-  ], {max_tokens:1500})
-  if (content) {
-    const quiz = _safeParseJSON(content)
-    if (quiz?.questions?.length) {
-      window._lv.quizData = quiz.questions
-      _renderQuiz(block, quiz.questions, true)
-      _lvBroadcast({ action: 'quiz_data', questions: quiz.questions })
-      return
+  try {
+    const content = await _aiCall([
+      {role:'system',content:'Génère 5 questions QCM en anglais sur cette vidéo YouTube. Réponse en JSON: {"questions":[{"q":"...","opts":["A) ...","B) ...","C) ...","D) ..."],"rep":"A","expl":"..."}]}'},
+      {role:'user',content:'ID vidéo YouTube: ' + window._lv.videoId + '. Crée 5 questions de compréhension pour des apprenants niveau B1.'}
+    ], {max_tokens:1500})
+    if (content) {
+      const quiz = _safeParseJSON(content)
+      if (quiz?.questions?.length) {
+        window._lv.quizData = quiz.questions
+        _renderQuiz(block, quiz.questions, true)
+        _lvBroadcast({ action: 'quiz_data', questions: quiz.questions })
+        return
+      }
     }
+  } catch(e) {
+    console.warn('Quiz IA échoué, fallback:', e.message)
   }
   window._lv.quizData = _FALLBACK_QUIZ
   _renderQuiz(block, _FALLBACK_QUIZ, true)
